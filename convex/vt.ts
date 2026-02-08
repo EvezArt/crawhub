@@ -70,37 +70,37 @@ export const fetchResults = action({
         return { status: 'error' }
       }
 
-      const data = (await response.json()) as VTFileResponse
-      const aiResult = data.data.attributes.crowdsourced_ai_results?.find(
+      const virusTotalResponse = (await response.json()) as VTFileResponse
+      const codeInsightResult = virusTotalResponse.data.attributes.crowdsourced_ai_results?.find(
         (r) => r.category === 'code_insight',
       )
 
-      const stats = data.data.attributes.last_analysis_stats
-      let status = 'pending'
+      const analysisStats = virusTotalResponse.data.attributes.last_analysis_stats
+      let scanStatus = 'pending'
 
-      if (aiResult?.verdict) {
+      if (codeInsightResult?.verdict) {
         // Prioritize AI Analysis (Code Insight)
-        status = verdictToStatus(normalizeVerdict(aiResult.verdict))
-      } else if (stats) {
+        scanStatus = verdictToStatus(normalizeVerdict(codeInsightResult.verdict))
+      } else if (analysisStats) {
         // Fallback to AV engines
-        if (stats.malicious > 0) {
-          status = 'malicious'
-        } else if (stats.suspicious > 0) {
-          status = 'suspicious'
-        } else if (stats.harmless > 0) {
-          status = 'clean'
+        if (analysisStats.malicious > 0) {
+          scanStatus = 'malicious'
+        } else if (analysisStats.suspicious > 0) {
+          scanStatus = 'suspicious'
+        } else if (analysisStats.harmless > 0) {
+          scanStatus = 'clean'
         }
       }
 
       return {
-        status,
-        source: aiResult?.verdict ? 'code_insight' : 'engines',
+        status: scanStatus,
+        source: codeInsightResult?.verdict ? 'code_insight' : 'engines',
         url: `https://www.virustotal.com/gui/file/${args.sha256hash}`,
         metadata: {
-          aiVerdict: aiResult?.verdict,
-          aiAnalysis: aiResult?.analysis,
-          aiSource: aiResult?.source,
-          stats: stats,
+          aiVerdict: codeInsightResult?.verdict,
+          aiAnalysis: codeInsightResult?.analysis,
+          aiSource: codeInsightResult?.source,
+          stats: analysisStats,
         },
       }
     } catch (error) {
@@ -176,21 +176,22 @@ export const scanWithVirusTotal = internalAction({
 
     // Check if file already exists in VT and has AI analysis
     try {
-      const existingFile = await checkExistingFile(apiKey, sha256hash)
+      const existingVirusTotalFile = await checkExistingFile(apiKey, sha256hash)
 
-      if (existingFile) {
-        const aiResult = existingFile.data.attributes.crowdsourced_ai_results?.find(
-          (r) => r.category === 'code_insight',
-        )
+      if (existingVirusTotalFile) {
+        const codeInsightResult =
+          existingVirusTotalFile.data.attributes.crowdsourced_ai_results?.find(
+            (r) => r.category === 'code_insight',
+          )
 
-        if (aiResult) {
+        if (codeInsightResult) {
           // File exists and has AI analysis - use the verdict
-          const verdict = normalizeVerdict(aiResult.verdict)
-          const status = verdictToStatus(verdict)
-          const isSafe = status === 'clean'
+          const normalizedVerdict = normalizeVerdict(codeInsightResult.verdict)
+          const scanStatus = verdictToStatus(normalizedVerdict)
+          const isSafe = scanStatus === 'clean'
 
           console.log(
-            `Version ${args.versionId} found in VT with AI analysis. Hash: ${sha256hash}. Verdict: ${verdict}`,
+            `Version ${args.versionId} found in VT with AI analysis. Hash: ${sha256hash}. Verdict: ${normalizedVerdict}`,
           )
 
           if (isSafe) {
@@ -200,11 +201,11 @@ export const scanWithVirusTotal = internalAction({
               status: 'clean',
               moderationStatus: 'active',
             })
-          } else if (status === 'malicious' || status === 'suspicious') {
+          } else if (scanStatus === 'malicious' || scanStatus === 'suspicious') {
             await ctx.runMutation(internal.skills.approveSkillByHashInternal, {
               sha256hash,
               scanner: 'vt',
-              status,
+              status: scanStatus,
               moderationStatus: 'hidden',
             })
           }
@@ -243,9 +244,9 @@ export const scanWithVirusTotal = internalAction({
         return
       }
 
-      const result = (await response.json()) as { data: { id: string } }
+      const uploadResponse = (await response.json()) as { data: { id: string } }
       console.log(
-        `Successfully uploaded version ${args.versionId} to VT. Hash: ${sha256hash}. Analysis ID: ${result.data.id}`,
+        `Successfully uploaded version ${args.versionId} to VT. Hash: ${sha256hash}. Analysis ID: ${uploadResponse.data.id}`,
       )
     } catch (error) {
       console.error('Failed to upload to VirusTotal:', error)
@@ -291,17 +292,17 @@ export const pollPendingScans = internalAction({
       }
 
       try {
-        const vtResult = await checkExistingFile(apiKey, sha256hash)
-        if (!vtResult) {
+        const virusTotalFileData = await checkExistingFile(apiKey, sha256hash)
+        if (!virusTotalFileData) {
           console.log(`[vt:pollPendingScans] Hash ${sha256hash} not found in VT yet`)
           continue
         }
 
-        const aiResult = vtResult.data.attributes.crowdsourced_ai_results?.find(
+        const codeInsightResult = virusTotalFileData.data.attributes.crowdsourced_ai_results?.find(
           (r) => r.category === 'code_insight',
         )
 
-        if (!aiResult) {
+        if (!codeInsightResult) {
           // No Code Insight - trigger a rescan to get it
           console.log(
             `[vt:pollPendingScans] Hash ${sha256hash} has no Code Insight, requesting rescan`,
@@ -311,17 +312,17 @@ export const pollPendingScans = internalAction({
         }
 
         // We have a verdict - update the skill
-        const verdict = normalizeVerdict(aiResult.verdict)
-        const status = verdictToStatus(verdict)
+        const normalizedVerdict = normalizeVerdict(codeInsightResult.verdict)
+        const scanStatus = verdictToStatus(normalizedVerdict)
 
         console.log(
-          `[vt:pollPendingScans] Hash ${sha256hash} verdict: ${verdict} -> status: ${status}`,
+          `[vt:pollPendingScans] Hash ${sha256hash} verdict: ${normalizedVerdict} -> status: ${scanStatus}`,
         )
 
         await ctx.runMutation(internal.skills.approveSkillByHashInternal, {
           sha256hash,
           scanner: 'vt',
-          status,
+          status: scanStatus,
         })
         updated++
       } catch (error) {
@@ -422,18 +423,18 @@ export const backfillPendingScans = internalAction({
       }
 
       try {
-        const vtResult = await checkExistingFile(apiKey, sha256hash)
+        const virusTotalFileData = await checkExistingFile(apiKey, sha256hash)
 
-        if (!vtResult) {
+        if (!virusTotalFileData) {
           notInVT++
           continue
         }
 
-        const aiResult = vtResult.data.attributes.crowdsourced_ai_results?.find(
+        const codeInsightResult = virusTotalFileData.data.attributes.crowdsourced_ai_results?.find(
           (r) => r.category === 'code_insight',
         )
 
-        if (!aiResult) {
+        if (!codeInsightResult) {
           if (triggerRescans) {
             await requestRescan(apiKey, sha256hash)
             rescansRequested++
@@ -442,13 +443,13 @@ export const backfillPendingScans = internalAction({
         }
 
         // We have a verdict - update the skill
-        const verdict = normalizeVerdict(aiResult.verdict)
-        const status = verdictToStatus(verdict)
+        const normalizedVerdict = normalizeVerdict(codeInsightResult.verdict)
+        const scanStatus = verdictToStatus(normalizedVerdict)
 
         await ctx.runMutation(internal.skills.approveSkillByHashInternal, {
           sha256hash,
           scanner: 'vt',
-          status,
+          status: scanStatus,
         })
         updated++
       } catch (error) {
