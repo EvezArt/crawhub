@@ -10,6 +10,8 @@
     "dev": "bun --bun vite dev --port 3000",
     "build": "bun --bun vite build",
     "preview": "bun --bun vite preview",
+    "demo": "bash scripts/demo.sh",
+    "seed": "bash scripts/seed-demo.sh",
     "docs:list": "bun scripts/docs-list.ts",
     "check:peers": "bun scripts/check-peer-deps.ts",
     "test": "vitest run",
