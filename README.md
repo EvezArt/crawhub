@@ -14,6 +14,64 @@ onlycrabs.ai is the **SOUL.md registry**: publish and share system lore the same
 Live: `https://clawhub.ai`
 onlycrabs.ai: `https://onlycrabs.ai`
 
+## 🚀 Quick Demo
+
+Get ClawHub running locally in minutes:
+
+### Prerequisites
+
+- **Bun** 1.3.6+ ([install](https://bun.sh))
+- **Convex CLI** (included via bunx)
+- **Node.js** 18+ (for some tooling)
+
+### Quick Start
+
+```bash
+# Clone and install
+git clone https://github.com/EvezArt/clawhub.git
+cd clawhub
+bun install
+
+# Setup environment
+cp .env.local.example .env.local
+# Edit .env.local - at minimum, you need:
+# - VITE_CONVEX_URL (from `bunx convex dev`)
+# - VITE_CONVEX_SITE_URL (same as above)
+# - CONVEX_SITE_URL (same as above)
+
+# Terminal 1: Start Convex backend
+bunx convex dev
+
+# Terminal 2: Seed demo data (optional but recommended)
+bun run seed
+
+# Terminal 3: Start web app
+bun run demo
+```
+
+The app will be available at `http://localhost:3000` with demo skills loaded!
+
+**For detailed demo instructions, authentication setup, CLI examples, and troubleshooting, see [DEMO.md](./DEMO.md).**
+
+## 🧪 Running Tests
+
+```bash
+# Run all unit tests
+bun run test
+
+# Run with coverage (requires 80% global coverage)
+bun run coverage
+
+# Run tests in watch mode
+bun run test:watch
+
+# Run end-to-end tests
+bun run test:e2e:local
+
+# Linting
+bun run lint
+```
+
 ## What you can do
 
 - Browse skills + render their `SKILL.md`.
@@ -94,6 +152,77 @@ This writes `JWT_PRIVATE_KEY` + `JWKS` to the deployment and prints values for y
 - `JWT_PRIVATE_KEY` / `JWKS`: Convex Auth keys.
 - `OPENAI_API_KEY`: embeddings for search + indexing.
 
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**"401 MissingAccessToken" when seeding**
+- Make sure `bunx convex dev` is running in a separate terminal
+- Try using `--deployment-name <name>` instead of `--env-file`
+- Or run `bunx convex deploy -y` first (for prod)
+
+**Port 3000 already in use**
+- Stop other services using port 3000, or
+- Edit `package.json` to change the `dev` script port: `--port 3001`
+
+**Environment variables not found**
+- Ensure `.env.local` exists and is in the project root
+- Check that `VITE_CONVEX_URL` is set correctly
+- Restart your dev server after changing env vars
+
+**Tests failing**
+- Run `bun install` to ensure dependencies are up to date
+- Check that you're using Bun 1.3.6+: `bun --version`
+- Clear test cache: `rm -rf .vitest`
+
+**Build errors**
+- Clear build cache: `rm -rf .output .nitro dist .tanstack`
+- Try a clean install: `rm -rf node_modules && bun install`
+
+**For more detailed troubleshooting**, see `docs/troubleshooting.md`.
+
+## 📚 Documentation
+
+- `DEMO.md` — Comprehensive demo and evaluation guide (START HERE!)
+- `docs/spec.md` — Product and implementation specification
+- `docs/quickstart.md` — Detailed setup guide
+- `docs/manual-testing.md` — Manual testing checklist
+- `docs/cli.md` — CLI documentation
+- `docs/api.md` — HTTP API documentation
+- `docs/auth.md` — Authentication setup
+- `docs/troubleshooting.md` — Detailed troubleshooting guide
+
+## 🐳 Docker Support
+
+Docker is **not required** for running ClawHub locally. The application uses:
+- **Convex** for the backend (cloud-based, no local database needed)
+- **Bun/Vite** for the frontend (simple Node.js-based dev server)
+
+Since there are no complex local services to orchestrate, the native setup (see Quick Demo above) is the recommended approach. It's faster and simpler than Docker for development and evaluation.
+
+## 🏗️ CI/CD
+
+This repository uses GitHub Actions for continuous integration:
+
+- **Workflow**: `.github/workflows/ci.yml`
+- **Runs on**: Every push to `main` and all pull requests
+- **Steps**:
+  1. Install dependencies (`bun install --frozen-lockfile`)
+  2. Check peer dependencies
+  3. Run linters (Biome + oxlint)
+  4. Run test suite (Vitest)
+  5. Check coverage (80% minimum)
+  6. Type-check packages
+  7. Build the application
+
+To run the same checks locally:
+```bash
+bun run lint    # Linting
+bun run test    # Tests
+bun run coverage # Coverage
+bun run build   # Build
+```
+
 ## Nix plugins (nixmode skills)
 
 ClawHub can store a nix-clawdbot plugin pointer in SKILL frontmatter so the registry knows which
@@ -140,12 +269,46 @@ metadata: {"clawdbot":{"cliHelp":"padel --help\\nUsage: padel [command]\\n"}}
 
 `metadata.clawdbot` is preferred, but `metadata.clawdis` is accepted as an alias for compatibility.
 
-## Scripts
+## Available Scripts
 
+### Development
 ```bash
-bun run dev
-bun run build
-bun run test
-bun run coverage
-bun run lint
+bun run dev        # Start development server (port 3000)
+bun run demo       # Run demo setup script (checks deps, starts dev server)
+bun run build      # Build for production
+bun run preview    # Preview production build
+```
+
+### Testing
+```bash
+bun run test          # Run all unit tests
+bun run test:watch    # Run tests in watch mode
+bun run test:e2e      # Run end-to-end tests
+bun run test:e2e:local # Run Playwright tests locally
+bun run test:pw       # Run Playwright tests
+bun run coverage      # Run tests with coverage report (80% min)
+```
+
+### Quality Assurance
+```bash
+bun run lint          # Run all linters (Biome + oxlint)
+bun run lint:biome    # Run Biome linter
+bun run lint:oxlint   # Run oxlint (type-aware)
+bun run format        # Auto-format code with Biome
+```
+
+### Data & Seeding
+```bash
+bun run seed          # Seed demo data (skills + souls)
+```
+
+### Utilities
+```bash
+bun run docs:list     # List documentation files
+bun run check:peers   # Check peer dependencies
+```
+
+### Deployment
+```bash
+bun run convex:deploy # Deploy Convex functions (with -y flag)
 ```
