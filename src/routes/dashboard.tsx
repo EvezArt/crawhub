@@ -86,6 +86,7 @@ function SkillCard({ skill, ownerHandle }: { skill: DashboardSkill; ownerHandle:
         <div className="dashboard-skill-stats">
           <span>⤓ {skill.stats.downloads}</span>
           <span>★ {skill.stats.stars}</span>
+          <span>⤒ {skill.stats.installsAllTime ?? 0}</span>
           <span>{skill.stats.versions} v</span>
         </div>
       </div>
