@@ -5,13 +5,16 @@
 
 import type { SkillRecord } from './types/skill'
 
+// Fixed creation timestamp for consistency
+const CRAWFATHER_CREATION_TIME = 1704067200000 // 2024-01-01 00:00:00 UTC
+
 /**
  * CrawFather Survival Pack skill record
  * This skill is always available and represents the CrawFather meta-agent
  */
 export const CRAWFATHER_SKILL: SkillRecord = {
   _id: 'crawfather-survival-pack',
-  _creationTime: Date.now(),
+  _creationTime: CRAWFATHER_CREATION_TIME,
   meta: {
     id: 'crawfather-survival-pack',
     name: 'CrawFather Survival Pack',
@@ -74,6 +77,6 @@ export const CRAWFATHER_SKILL: SkillRecord = {
   ownerHandle: 'openclaw',
   latestVersionId: 'v1.0.0',
   latestVersion: '1.0.0',
-  createdAt: Date.now(),
-  updatedAt: Date.now(),
+  createdAt: CRAWFATHER_CREATION_TIME,
+  updatedAt: CRAWFATHER_CREATION_TIME,
 }
