@@ -866,6 +866,8 @@ export const getFinalizingSkillsInternal = internalQuery({
 
     for (const skill of skills) {
       // Check if all cleanup is complete
+      // Note: We use .take(1) for performance - we only need to know if any items exist (0 or 1)
+      // not the exact count. This is sufficient to determine if a skill is ready for finalization.
       const versionsCount = await ctx.db
         .query('skillVersions')
         .withIndex('by_skill', (q) => q.eq('skillId', skill._id))
@@ -935,8 +937,10 @@ export const getFinalizingSkillsInternal = internalQuery({
       const leaderboardsCount = await ctx.db
         .query('skillLeaderboards')
         .collect()
-        .then((items) => items.filter((item) => item.items.some((i) => i.skillId === skill._id)))
-        .then((items) => items.length)
+        .then((items) => {
+          const found = items.find((item) => item.items.some((i) => i.skillId === skill._id))
+          return found ? 1 : 0
+        })
 
       const canonicalCount = await ctx.db
         .query('skills')
@@ -1014,12 +1018,12 @@ export const advanceFinalizingSkillsInternal = internalAction({
 
     for (const skill of skills) {
       if (!skill.isComplete) {
+        const remaining = Object.entries(skill.remainingCounts)
+          .filter(([, count]) => count > 0)
+          .map(([phase, count]) => `${phase}: ${Number(count)}`)
+          .join(', ')
         console.log(
-          `[advanceFinalizingSkills] Skill ${skill.slug} (${skill.skillId}) not ready for finalization. Remaining:`,
-          Object.entries(skill.remainingCounts)
-            .filter(([, count]) => (count as number) > 0)
-            .map(([phase, count]) => `${phase}: ${count as number}`)
-            .join(', '),
+          `[advanceFinalizingSkills] Skill ${skill.slug} (${skill.skillId}) not ready for finalization. Remaining: ${remaining}`,
         )
         continue
       }
