@@ -147,7 +147,7 @@ function UserProfile() {
             </div>
           ) : null}
 
-          {publishedSoulsList.length > 0 && (
+          {(isLoadingPublishedSouls || publishedSoulsList.length > 0) && (
             <>
               <h2 className="section-title" style={{ fontSize: '1.3rem' }}>
                 Published Souls
@@ -158,7 +158,7 @@ function UserProfile() {
                 <div className="card">
                   <div className="loading-indicator">Loading published souls…</div>
                 </div>
-              ) : (
+              ) : publishedSoulsList.length > 0 ? (
                 <div className="grid" style={{ marginBottom: 18 }}>
                   {publishedSoulsList.map((soul) => (
                     <SoulCard
@@ -173,7 +173,7 @@ function UserProfile() {
                     />
                   ))}
                 </div>
-              )}
+              ) : null}
             </>
           )}
 
@@ -207,7 +207,7 @@ function UserProfile() {
             </div>
           )}
 
-          {souls.length > 0 && (
+          {(isLoadingSouls || souls.length > 0) && (
             <>
               <h2 className="section-title" style={{ fontSize: '1.3rem' }}>
                 Starred Souls
@@ -218,7 +218,7 @@ function UserProfile() {
                 <div className="card">
                   <div className="loading-indicator">Loading starred souls…</div>
                 </div>
-              ) : (
+              ) : souls.length > 0 ? (
                 <div className="grid">
                   {souls.map((soul) => (
                     <SoulCard
@@ -233,7 +233,7 @@ function UserProfile() {
                     />
                   ))}
                 </div>
-              )}
+              ) : null}
             </>
           )}
         </>
