@@ -298,6 +298,7 @@ const skillStatEvents = defineTable({
 })
   .index('by_unprocessed', ['processedAt'])
   .index('by_skill', ['skillId'])
+  .index('by_creation_time', ['_creationTime'])
 
 const skillStatUpdateCursors = defineTable({
   key: v.string(),
