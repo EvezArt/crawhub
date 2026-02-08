@@ -67,40 +67,40 @@ function getScanStatusInfo(status: string) {
 }
 
 function useSecurityScan(sha256hash?: string, enabled = true) {
-  const fetchVT = useAction(api.vt.fetchResults)
-  const [result, setResult] = useState<ScanResult | null>(null)
-  const [loading, setLoading] = useState(false)
+  const fetchVirusTotalResults = useAction(api.vt.fetchResults)
+  const [scanResult, setScanResult] = useState<ScanResult | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     if (!sha256hash || !enabled) {
-      setResult(null)
-      setLoading(false)
+      setScanResult(null)
+      setIsLoading(false)
       return
     }
 
     let cancelled = false
-    setLoading(true)
+    setIsLoading(true)
 
-    void fetchVT({ sha256hash })
-      .then((res) => {
+    void fetchVirusTotalResults({ sha256hash })
+      .then((virusTotalResponse) => {
         if (!cancelled) {
-          setResult(res)
-          setLoading(false)
+          setScanResult(virusTotalResponse)
+          setIsLoading(false)
         }
       })
       .catch(() => {
         if (!cancelled) {
-          setResult({ status: 'error' })
-          setLoading(false)
+          setScanResult({ status: 'error' })
+          setIsLoading(false)
         }
       })
 
     return () => {
       cancelled = true
     }
-  }, [sha256hash, enabled, fetchVT])
+  }, [sha256hash, enabled, fetchVirusTotalResults])
 
-  return { result, loading }
+  return { scanResult, isLoading }
 }
 
 function SecurityScanResults({
@@ -112,16 +112,16 @@ function SecurityScanResults({
   variant?: 'panel' | 'badge'
   enabled?: boolean
 }) {
-  const { result, loading } = useSecurityScan(sha256hash, enabled)
+  const { scanResult, isLoading } = useSecurityScan(sha256hash, enabled)
 
   if (!sha256hash) return null
 
-  const status = loading ? 'loading' : (result?.status ?? 'pending')
-  const url = result?.url
-  const statusInfo = getScanStatusInfo(status)
-  const metadata = result?.metadata
-  const isCodeInsight = result?.source === 'code_insight'
-  const aiAnalysis = metadata?.aiAnalysis
+  const scanStatus = isLoading ? 'loading' : (scanResult?.status ?? 'pending')
+  const virusTotalReportUrl = scanResult?.url
+  const statusInfo = getScanStatusInfo(scanStatus)
+  const scanMetadata = scanResult?.metadata
+  const isCodeInsightSource = scanResult?.source === 'code_insight'
+  const codeInsightAnalysis = scanMetadata?.aiAnalysis
 
   // Determine display label based on source
   // Always prefer verdict labels (Benign, Suspicious, Malicious) over engine stats
@@ -132,9 +132,9 @@ function SecurityScanResults({
       <div className="version-scan-badge">
         <VirusTotalIcon className="version-scan-icon version-scan-icon-vt" />
         <span className={statusInfo.className}>{displayLabel}</span>
-        {url ? (
+        {virusTotalReportUrl ? (
           <a
-            href={url}
+            href={virusTotalReportUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="version-scan-link"
@@ -157,16 +157,23 @@ function SecurityScanResults({
             <span className="scan-result-scanner-name">VirusTotal</span>
           </div>
           <div className={`scan-result-status ${statusInfo.className}`}>{displayLabel}</div>
-          {url ? (
-            <a href={url} target="_blank" rel="noopener noreferrer" className="scan-result-link">
+          {virusTotalReportUrl ? (
+            <a
+              href={virusTotalReportUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="scan-result-link"
+            >
               View report →
             </a>
           ) : null}
         </div>
-        {isCodeInsight && aiAnalysis && (status === 'malicious' || status === 'suspicious') ? (
-          <div className={`code-insight-analysis ${status}`}>
+        {isCodeInsightSource &&
+        codeInsightAnalysis &&
+        (scanStatus === 'malicious' || scanStatus === 'suspicious') ? (
+          <div className={`code-insight-analysis ${scanStatus}`}>
             <div className="code-insight-label">Code Insight</div>
-            <p className="code-insight-text">{aiAnalysis}</p>
+            <p className="code-insight-text">{codeInsightAnalysis}</p>
           </div>
         ) : null}
       </div>
@@ -242,14 +249,15 @@ export function SkillDetailPage({
 }: SkillDetailPageProps) {
   const navigate = useNavigate()
   const { isAuthenticated, me } = useAuthStatus()
-  const isStaff = isModerator(me)
-  const staffResult = useQuery(api.skills.getBySlugForStaff, isStaff ? { slug } : 'skip') as
+  const isStaffMember = isModerator(me)
+  const skillDataForStaff = useQuery(
+    api.skills.getBySlugForStaff,
+    isStaffMember ? { slug } : 'skip',
+  ) as SkillBySlugResult | undefined
+  const skillDataForPublic = useQuery(api.skills.getBySlug, !isStaffMember ? { slug } : 'skip') as
     | SkillBySlugResult
     | undefined
-  const publicResult = useQuery(api.skills.getBySlug, !isStaff ? { slug } : 'skip') as
-    | SkillBySlugResult
-    | undefined
-  const result = isStaff ? staffResult : publicResult
+  const skillData = isStaffMember ? skillDataForStaff : skillDataForPublic
   const toggleStar = useMutation(api.stars.toggle)
   const reportSkill = useMutation(api.skills.report)
   const addComment = useMutation(api.comments.add)
@@ -264,10 +272,10 @@ export function SkillDetailPage({
   const [activeTab, setActiveTab] = useState<'files' | 'compare' | 'versions'>('files')
   const [versionScanOpen, setVersionScanOpen] = useState<Record<string, boolean>>({})
 
-  const isLoadingSkill = result === undefined
-  const skill = result?.skill
-  const owner = result?.owner
-  const latestVersion = result?.latestVersion
+  const isLoadingSkill = skillData === undefined
+  const skill = skillData?.skill
+  const owner = skillData?.owner
+  const latestVersion = skillData?.latestVersion
   const versions = useQuery(
     api.skills.listVersions,
     skill ? { skillId: skill._id, limit: 50 } : 'skip',
@@ -296,9 +304,9 @@ export function SkillDetailPage({
         (typeof canonicalOwner === 'string' && canonicalOwner && canonicalOwner !== ownerParam)),
   )
 
-  const forkOf = result?.forkOf ?? null
-  const canonical = result?.canonical ?? null
-  const modInfo = result?.moderationInfo ?? null
+  const forkOf = skillData?.forkOf ?? null
+  const canonical = skillData?.canonical ?? null
+  const modInfo = skillData?.moderationInfo ?? null
   const forkOfLabel = forkOf?.kind === 'duplicate' ? 'duplicate of' : 'fork of'
   const forkOfOwnerHandle = forkOf?.owner?.handle ?? null
   const forkOfOwnerId = forkOf?.owner?.userId ?? null
@@ -311,7 +319,7 @@ export function SkillDetailPage({
     canonical?.skill?.slug && canonical.skill.slug !== forkOf?.skill?.slug
       ? buildSkillHref(canonicalOwnerHandle, canonicalOwnerId, canonical.skill.slug)
       : null
-  const staffSkill = isStaff && skill ? (skill as Doc<'skills'>) : null
+  const staffSkill = isStaffMember && skill ? (skill as Doc<'skills'>) : null
   const moderationStatus =
     staffSkill?.moderationStatus ?? (staffSkill?.softDeletedAt ? 'hidden' : undefined)
   const isHidden = moderationStatus === 'hidden' || Boolean(staffSkill?.softDeletedAt)
@@ -409,7 +417,7 @@ export function SkillDetailPage({
     )
   }
 
-  if (result === null || !skill) {
+  if (skillData === null || !skill) {
     return (
       <main className="section">
         <div className="card">Skill not found.</div>
@@ -479,7 +487,7 @@ export function SkillDetailPage({
                 </div>
                 <p className="section-subtitle">{skill.summary ?? 'No summary provided.'}</p>
 
-                {isStaff && staffModerationNote ? (
+                {isStaffMember && staffModerationNote ? (
                   <div className="skill-hero-note">{staffModerationNote}</div>
                 ) : null}
                 {nixPlugin ? (
@@ -521,7 +529,7 @@ export function SkillDetailPage({
                     {badge}
                   </div>
                 ))}
-                {isStaff && staffVisibilityTag ? (
+                {isStaffMember && staffVisibilityTag ? (
                   <div className={`tag${isAutoHidden || isRemoved ? ' tag-accent' : ''}`}>
                     {staffVisibilityTag}
                   </div>
@@ -570,7 +578,7 @@ export function SkillDetailPage({
                       Report
                     </button>
                   ) : null}
-                  {isStaff ? (
+                  {isStaffMember ? (
                     <Link className="btn" to="/management" search={{ skill: skill.slug }}>
                       Manage
                     </Link>
