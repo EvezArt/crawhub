@@ -22,7 +22,7 @@ fi
 # Check if dependencies are installed
 if [ ! -d "node_modules" ]; then
     echo "📦 Installing dependencies..."
-    bun install --frozen-lockfile
+    bun install --frozen-lockfile || bun install
 else
     echo "✅ Dependencies already installed"
 fi

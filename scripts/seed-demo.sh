@@ -27,7 +27,10 @@ if [ ! -f ".env.local" ]; then
 fi
 
 # Check if VITE_CONVEX_URL is set
-source .env.local
+if [ -f ".env.local" ]; then
+    VITE_CONVEX_URL=$(grep '^VITE_CONVEX_URL=' .env.local | cut -d '=' -f2)
+fi
+
 if [ -z "$VITE_CONVEX_URL" ]; then
     echo "❌ Error: VITE_CONVEX_URL is not set in .env.local"
     echo "   You need a Convex deployment URL to seed data."

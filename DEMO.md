@@ -290,7 +290,7 @@ bun run seed -- --prod
 **Solution**:
 ```bash
 # Reinstall dependencies
-rm -rf node_modules bun.lock
+rm -rf node_modules bun.lockb
 bun install
 
 # Clear test cache
