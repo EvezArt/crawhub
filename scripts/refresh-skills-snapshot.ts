@@ -6,13 +6,12 @@
  * without needing network access.
  */
 
-import { writeFileSync, mkdirSync } from 'node:fs'
+import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { ConvexHttpClient } from 'convex/browser'
-
+import { api } from '../convex/_generated/api'
 // Import types and helpers
 import type { Doc } from '../convex/_generated/dataModel'
-import { api } from '../convex/_generated/api'
 import { CRAWFATHER_SKILL } from '../src/lib/crawfather-skill'
 import type { SkillRecord } from '../src/lib/types/skill'
 import { toSkillRecord } from '../src/lib/types/skill'
