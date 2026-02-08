@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Doc } from '../../../convex/_generated/dataModel'
 import { SkillCard } from '../../components/SkillCard'
+import { SoulCard } from '../../components/SoulCard'
 import { getSkillBadges } from '../../lib/badges'
-import type { PublicSkill, PublicUser } from '../../lib/publicUser'
+import type { PublicSkill, PublicSoul, PublicUser } from '../../lib/publicUser'
 
 export const Route = createFileRoute('/u/$handle')({
   component: UserProfile,
@@ -23,6 +24,14 @@ function UserProfile() {
     api.stars.listByUser,
     user ? { userId: user._id, limit: 50 } : 'skip',
   ) as PublicSkill[] | undefined
+  const publishedSouls = useQuery(
+    api.souls.list,
+    user ? { ownerUserId: user._id, limit: 50 } : 'skip',
+  ) as PublicSoul[] | undefined
+  const starredSouls = useQuery(
+    api.soulStars.listByUser,
+    user ? { userId: user._id, limit: 50 } : 'skip',
+  ) as PublicSoul[] | undefined
 
   const isSelf = Boolean(me && user && me._id === user._id)
   const [tab, setTab] = useState<'stars' | 'installed'>('stars')
@@ -62,6 +71,10 @@ function UserProfile() {
   const skills = starredSkills ?? []
   const isLoadingPublished = publishedSkills === undefined
   const published = publishedSkills ?? []
+  const isLoadingSouls = starredSouls === undefined
+  const souls = starredSouls ?? []
+  const isLoadingPublishedSouls = publishedSouls === undefined
+  const publishedSoulsList = publishedSouls ?? []
 
   return (
     <main className="section">
@@ -134,19 +147,49 @@ function UserProfile() {
             </div>
           ) : null}
 
+          {publishedSoulsList.length > 0 && (
+            <>
+              <h2 className="section-title" style={{ fontSize: '1.3rem' }}>
+                Published Souls
+              </h2>
+              <p className="section-subtitle">Agent personalities published by this user.</p>
+
+              {isLoadingPublishedSouls ? (
+                <div className="card">
+                  <div className="loading-indicator">Loading published souls…</div>
+                </div>
+              ) : (
+                <div className="grid" style={{ marginBottom: 18 }}>
+                  {publishedSoulsList.map((soul) => (
+                    <SoulCard
+                      key={soul._id}
+                      soul={soul}
+                      summaryFallback="Agent personality."
+                      meta={
+                        <div className="stat">
+                          ⭐ {soul.stats.stars} · ⤓ {soul.stats.downloads}
+                        </div>
+                      }
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
           <h2 className="section-title" style={{ fontSize: '1.3rem' }}>
-            Stars
+            Starred Skills
           </h2>
           <p className="section-subtitle">Skills this user has starred.</p>
 
           {isLoadingSkills ? (
             <div className="card">
-              <div className="loading-indicator">Loading stars…</div>
+              <div className="loading-indicator">Loading starred skills…</div>
             </div>
           ) : skills.length === 0 ? (
-            <div className="card">No stars yet.</div>
+            <div className="card">No starred skills yet.</div>
           ) : (
-            <div className="grid">
+            <div className="grid" style={{ marginBottom: 18 }}>
               {skills.map((skill) => (
                 <SkillCard
                   key={skill._id}
@@ -162,6 +205,36 @@ function UserProfile() {
                 />
               ))}
             </div>
+          )}
+
+          {souls.length > 0 && (
+            <>
+              <h2 className="section-title" style={{ fontSize: '1.3rem' }}>
+                Starred Souls
+              </h2>
+              <p className="section-subtitle">Agent personalities this user has starred.</p>
+
+              {isLoadingSouls ? (
+                <div className="card">
+                  <div className="loading-indicator">Loading starred souls…</div>
+                </div>
+              ) : (
+                <div className="grid">
+                  {souls.map((soul) => (
+                    <SoulCard
+                      key={soul._id}
+                      soul={soul}
+                      summaryFallback="Agent personality."
+                      meta={
+                        <div className="stat">
+                          ⭐ {soul.stats.stars} · ⤓ {soul.stats.downloads}
+                        </div>
+                      }
+                    />
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </>
       )}
