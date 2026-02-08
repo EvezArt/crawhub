@@ -49,6 +49,25 @@ read_when:
 ## Sync
 - `bun clawhub sync --dry-run --all`
 
+## Maintenance (admin only)
+
+### Advance finalizing skills
+Skills being hard-deleted go through multiple cleanup phases (versions, fingerprints, embeddings, comments, etc.). 
+If skills get stuck in intermediate phases, use this function to advance skills that have completed all cleanup to finalization:
+
+```typescript
+// Check which skills are ready for finalization (dry-run)
+bunx convex run maintenance:advanceFinalizingSkills --dryRun true
+
+// Actually finalize ready skills
+bunx convex run maintenance:advanceFinalizingSkills
+```
+
+This is useful for:
+- Testing the deletion flow
+- Cleaning up skills that got stuck during deletion
+- Manual cleanup after migration or data fixes
+
 ## Playwright (menu smoke)
 
 Run against prod:
