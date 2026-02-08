@@ -268,3 +268,79 @@ describe('maintenance fingerprint backfill', () => {
     })
   })
 })
+
+describe('maintenance advanceFinalizingSkills logic', () => {
+  it('correctly identifies when all cleanup phases are complete', () => {
+    const allZeros = {
+      versions: 0,
+      fingerprints: 0,
+      embeddings: 0,
+      comments: 0,
+      reports: 0,
+      stars: 0,
+      badges: 0,
+      dailyStats: 0,
+      statEvents: 0,
+      installs: 0,
+      rootInstalls: 0,
+      leaderboards: 0,
+      canonical: 0,
+      forks: 0,
+    }
+
+    const isComplete =
+      allZeros.versions === 0 &&
+      allZeros.fingerprints === 0 &&
+      allZeros.embeddings === 0 &&
+      allZeros.comments === 0 &&
+      allZeros.reports === 0 &&
+      allZeros.stars === 0 &&
+      allZeros.badges === 0 &&
+      allZeros.dailyStats === 0 &&
+      allZeros.statEvents === 0 &&
+      allZeros.installs === 0 &&
+      allZeros.rootInstalls === 0 &&
+      allZeros.leaderboards === 0 &&
+      allZeros.canonical === 0 &&
+      allZeros.forks === 0
+
+    expect(isComplete).toBe(true)
+  })
+
+  it('correctly identifies when cleanup phases are incomplete', () => {
+    const withRemaining = {
+      versions: 0,
+      fingerprints: 0,
+      embeddings: 0,
+      comments: 0,
+      reports: 0,
+      stars: 0,
+      badges: 0,
+      dailyStats: 0,
+      statEvents: 0,
+      installs: 0,
+      rootInstalls: 0,
+      leaderboards: 0,
+      canonical: 0,
+      forks: 5, // Still has forks to clean up
+    }
+
+    const isComplete =
+      withRemaining.versions === 0 &&
+      withRemaining.fingerprints === 0 &&
+      withRemaining.embeddings === 0 &&
+      withRemaining.comments === 0 &&
+      withRemaining.reports === 0 &&
+      withRemaining.stars === 0 &&
+      withRemaining.badges === 0 &&
+      withRemaining.dailyStats === 0 &&
+      withRemaining.statEvents === 0 &&
+      withRemaining.installs === 0 &&
+      withRemaining.rootInstalls === 0 &&
+      withRemaining.leaderboards === 0 &&
+      withRemaining.canonical === 0 &&
+      withRemaining.forks === 0
+
+    expect(isComplete).toBe(false)
+  })
+})
