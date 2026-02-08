@@ -54,7 +54,7 @@
 }
 
 /* Mobile-first improvements */
-@supports (padding: max(0px)) {
+@supports (padding: env(safe-area-inset-left)) {
   body {
     padding-left: max(0px, env(safe-area-inset-left));
     padding-right: max(0px, env(safe-area-inset-right));
@@ -1119,7 +1119,7 @@ code {
   tab-size: 2;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
   /* Better mobile scroll with safe area */
-  padding-right: max(14px, calc(14px + env(safe-area-inset-right)));
+  padding-right: max(14px, env(safe-area-inset-right));
   scrollbar-width: thin;
   scrollbar-color: var(--line) transparent;
 }
