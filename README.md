@@ -51,6 +51,8 @@ bun run demo
 
 The app will be available at `http://localhost:3000` with demo skills loaded!
 
+**For detailed demo instructions, authentication setup, CLI examples, and troubleshooting, see [DEMO.md](./DEMO.md).**
+
 ## 🧪 Running Tests
 
 ```bash
@@ -181,6 +183,7 @@ This writes `JWT_PRIVATE_KEY` + `JWKS` to the deployment and prints values for y
 
 ## 📚 Documentation
 
+- `DEMO.md` — Comprehensive demo and evaluation guide (START HERE!)
 - `docs/spec.md` — Product and implementation specification
 - `docs/quickstart.md` — Detailed setup guide
 - `docs/manual-testing.md` — Manual testing checklist
@@ -188,6 +191,14 @@ This writes `JWT_PRIVATE_KEY` + `JWKS` to the deployment and prints values for y
 - `docs/api.md` — HTTP API documentation
 - `docs/auth.md` — Authentication setup
 - `docs/troubleshooting.md` — Detailed troubleshooting guide
+
+## 🐳 Docker Support
+
+Docker is **not required** for running ClawHub locally. The application uses:
+- **Convex** for the backend (cloud-based, no local database needed)
+- **Bun/Vite** for the frontend (simple Node.js-based dev server)
+
+Since there are no complex local services to orchestrate, the native setup (see Quick Demo above) is the recommended approach. It's faster and simpler than Docker for development and evaluation.
 
 ## 🏗️ CI/CD
 
