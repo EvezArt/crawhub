@@ -59,3 +59,19 @@ read_when:
 - Compute fingerprint; compare to registry state.
 - Optionally reports telemetry (see `docs/telemetry.md`).
 - Publishes new/changed skills (skips modified installed skills inside install root).
+
+## Domains
+
+### Physical Passover Domain
+
+ClawHub includes a **Physical Passover Domain** that models the complete multimodal AI pipeline from photons to text tokens. This domain tracks the 11-stage transformation:
+
+Photons → Sensor → RAW → RGB → Codec → Network → Decode → Canonical Tensor → Patch Embeddings → Fuse w/ Text Tokens → Autoregressive Text Tokens → Words
+
+Each stage has specific artifacts, signals, and failure planes. The domain provides:
+- Event tracking for all pipeline stages
+- Complete trace reconstruction for debugging
+- Replayability via canonical tensor hashes and preprocessing recipe IDs
+- Observability metrics for confidence, failure planes, and blind spots
+
+See `docs/physical-passover.md` for complete documentation.
