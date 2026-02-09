@@ -277,8 +277,8 @@ async function fetchMetaFile(
       `/repos/${repoOwner}/${repoName}/contents/${encodePath(path)}?ref=${branch}`,
     )
     if (!response.content) return null
-    const raw = fromBase64(response.content)
-    return JSON.parse(raw) as MetaFile
+    const decodedContent = fromBase64(response.content)
+    return JSON.parse(decodedContent) as MetaFile
   } catch (error) {
     if (isNotFoundError(error)) return null
     throw error
