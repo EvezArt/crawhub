@@ -122,6 +122,38 @@ const SECURITY_PATTERNS = [
     severity: 'critical' as const,
     description: 'Database connection string with credentials detected',
   },
+
+  // Transaction/Accounting Logic Errors
+  {
+    name: 'Negative Debit (Logic Error)',
+    pattern: /\b(debit|charge|subtract|remove|decrease)\s*[:\(=]\s*-\d+/gi,
+    severity: 'high' as const,
+    description: 'Debit operation using negative number (should be positive)',
+  },
+  {
+    name: 'Negative Credit (Logic Error)',
+    pattern: /\b(credit|add|deposit|increase)\s*[:\(=]\s*-\d+/gi,
+    severity: 'medium' as const,
+    description: 'Credit operation using negative number (may be incorrect)',
+  },
+  {
+    name: 'Double Negative in Transaction',
+    pattern: /\b(balance|amount|total|value)\s*[-+]=\s*-\s*-/gi,
+    severity: 'medium' as const,
+    description: 'Double negative in transaction calculation',
+  },
+  {
+    name: 'Suspicious Transaction Pattern',
+    pattern: /\b(debt|owed|owing)\s*[:\(=]\s*-\d+(?!\s*\/\/.*correct|expected)/gi,
+    severity: 'medium' as const,
+    description: 'Debt represented as negative (may cause confusion)',
+  },
+  {
+    name: 'Incorrect Balance Calculation',
+    pattern: /\bbalance\s*[-+]=\s*-.*(?:debit|charge|subtract)/gi,
+    severity: 'high' as const,
+    description: 'Suspicious balance calculation with negative debit',
+  },
 ]
 
 const EXCLUDED_DIRS = [

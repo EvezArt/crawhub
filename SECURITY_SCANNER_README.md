@@ -2,7 +2,11 @@
 
 ## What Was Built
 
-A comprehensive security scanning tool to detect exposed cryptocurrency wallets, private keys, API keys, and other sensitive information in your repository.
+A comprehensive security scanning tool to detect:
+1. Exposed cryptocurrency wallets, private keys, API keys, and other sensitive information
+2. **Transaction/accounting logic errors** where negative numbers are used incorrectly (e.g., debiting negative amounts)
+
+This helps prevent both security breaches and financial/accounting bugs in your codebase.
 
 ## Quick Start
 
@@ -43,6 +47,13 @@ The scanner found 3 medium-severity false positives (Git commit hashes in test f
 ### Other Secrets
 - ✅ Hardcoded passwords
 - ✅ Database connection strings with credentials
+
+### Transaction/Accounting Logic Errors
+- ✅ Negative debits (e.g., `debit: -100` should be `debit: 100`)
+- ✅ Negative credits (suspicious crediting of negative amounts)
+- ✅ Double negatives in calculations
+- ✅ Suspicious debt representation patterns
+- ✅ Incorrect balance calculations with negative values
 
 ## Files Created
 

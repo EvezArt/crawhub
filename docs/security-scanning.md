@@ -42,6 +42,13 @@ The security scanner checks your repository for:
 - **Hardcoded passwords**: Password assignments in code
 - **Database connection strings**: MongoDB, PostgreSQL, MySQL URLs with embedded credentials
 
+### ⚖️ Transaction/Accounting Logic Errors
+- **Negative debits**: Debit operations using negative numbers (e.g., `debit: -100` should be `debit: 100`)
+- **Negative credits**: Credit operations using negative numbers (may indicate logic error)
+- **Double negatives**: Transaction calculations with double negatives (e.g., `balance -= --amount`)
+- **Suspicious debt patterns**: Debt represented as negative values without clear documentation
+- **Incorrect balance calculations**: Balance adjustments using negative debits/credits
+
 ## Severity Levels
 
 The scanner classifies findings by severity:
@@ -73,6 +80,116 @@ The scanner only checks relevant file types:
 - Environment: `.env`, `.env.example`, `.env.local`
 - Documentation: `.md`, `.txt`
 - Scripts: `.sh`, `.bash`
+
+## Understanding Transaction Logic Errors
+
+The scanner now detects common accounting/transaction logic errors where negative numbers are used incorrectly:
+
+### Why This Matters
+
+In financial and accounting systems, using negative numbers incorrectly can lead to:
+- **Double-charging users**: Debiting `-100` when you meant to debit `100`
+- **Balance corruption**: Incorrect balance calculations that compound over time
+- **Audit failures**: Confusing transaction logs that don't match accounting principles
+- **Security vulnerabilities**: Logic errors that can be exploited
+
+### Common Patterns Detected
+
+#### 1. Negative Debit (High Severity)
+```typescript
+// ❌ BAD - Debiting a negative number
+account.debit(-100)  // This ADDS 100 instead of subtracting!
+
+// ✅ GOOD - Debit with positive number
+account.debit(100)   // Clearly subtracts 100
+```
+
+#### 2. Negative Credit (Medium Severity)
+```typescript
+// ❌ SUSPICIOUS - Crediting a negative number
+account.credit(-50)  // This SUBTRACTS 50 instead of adding!
+
+// ✅ GOOD - Credit with positive number
+account.credit(50)   // Clearly adds 50
+```
+
+#### 3. Double Negatives (Medium Severity)
+```typescript
+// ❌ BAD - Double negative is confusing
+balance -= --amount  // Equivalent to balance += amount
+
+// ✅ GOOD - Clear intention
+balance += amount
+```
+
+#### 4. Debt Representation (Medium Severity)
+```typescript
+// ⚠️ SUSPICIOUS - Debt as negative
+const debt = -1000  // Ambiguous: is this owed or credit?
+
+// ✅ BETTER - Debt as positive with clear naming
+const debtOwed = 1000  // Clear: user owes $1000
+// Or document why negative is correct:
+const debt = -1000  // negative = amount owed (by accounting convention)
+```
+
+### Best Practices for Transactions
+
+1. **Use positive numbers for amounts**, let the operation determine the sign:
+   ```typescript
+   // Good pattern
+   function debit(account: Account, amount: number) {
+     if (amount < 0) throw new Error('Debit amount must be positive')
+     account.balance -= amount
+   }
+
+   function credit(account: Account, amount: number) {
+     if (amount < 0) throw new Error('Credit amount must be positive')
+     account.balance += amount
+   }
+   ```
+
+2. **Validate transaction amounts**:
+   ```typescript
+   function validateAmount(amount: number, operation: string) {
+     if (amount <= 0) {
+       throw new Error(`${operation} amount must be positive: ${amount}`)
+     }
+   }
+   ```
+
+3. **Use explicit delta types**:
+   ```typescript
+   type TransactionDelta = {
+     type: 'debit' | 'credit'
+     amount: number  // Always positive
+   }
+   ```
+
+4. **Document intentional negative values**:
+   ```typescript
+   // When negative values ARE correct, document why:
+   const refund = -originalCharge  // negative = reversal, documented
+   ```
+
+### Example: ClawHub's Stats System
+
+ClawHub uses this pattern correctly in `convex/skillStatEvents.ts`:
+
+```typescript
+// Good: Operations use descriptive names, numbers show net effect
+case 'star':
+  result.stars += 1      // Clearly adds
+  break
+case 'unstar':
+  result.stars -= 1      // Clearly subtracts
+  break
+case 'install_deactivate':
+  result.installsCurrent -= 1  // Clearly reduces count
+  break
+```
+
+The key: **operation name determines direction, number shows magnitude**.
 
 ## Understanding False Positives
 

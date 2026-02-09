@@ -13,6 +13,7 @@ bun run security:scan
 - 🔑 Private keys and seed phrases
 - 🎫 API keys (OpenAI, AWS, GitHub, etc.)
 - 🔒 Hardcoded passwords and database credentials
+- ⚖️ **Transaction/accounting logic errors** (negative debits, incorrect balance calculations)
 
 ## Exit Codes
 
@@ -35,6 +36,12 @@ OPENAI_API_KEY=sk-... bun run dev
 
 # Bad: Hardcode in source
 const key = 'sk-...' // ❌ NEVER DO THIS
+
+# Good: Transaction logic with positive amounts
+account.debit(100)   // ✅ Clear: subtract 100
+
+# Bad: Transaction logic with negative amounts
+account.debit(-100)  // ❌ DANGER: adds 100 instead!
 ```
 
 ## Full Documentation
