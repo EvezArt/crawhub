@@ -17,6 +17,8 @@ export const listMine = query({
       _id: token._id,
       label: token.label,
       prefix: token.prefix,
+      tokenType: token.tokenType ?? 'standard',
+      quantumCapabilities: token.quantumCapabilities,
       createdAt: token.createdAt,
       lastUsedAt: token.lastUsedAt,
       revokedAt: token.revokedAt,
@@ -25,11 +27,16 @@ export const listMine = query({
 })
 
 export const create = mutation({
-  args: { label: v.string() },
+  args: {
+    label: v.string(),
+    tokenType: v.optional(v.union(v.literal('standard'), v.literal('quantum'))),
+    capabilities: v.optional(v.array(v.string())),
+  },
   handler: async (ctx, args) => {
     const { userId } = await requireUser(ctx)
     const label = args.label.trim() || 'CLI token'
-    const { token, prefix } = generateToken()
+    const tokenType = args.tokenType ?? 'standard'
+    const { token, prefix } = generateToken(tokenType)
     const tokenHash = await hashToken(token)
 
     const now = Date.now()
@@ -38,12 +45,17 @@ export const create = mutation({
       label,
       prefix,
       tokenHash,
+      tokenType,
+      quantumCapabilities:
+        tokenType === 'quantum'
+          ? (args.capabilities ?? ['inline-access', 'hardware-proof'])
+          : undefined,
       createdAt: now,
       lastUsedAt: undefined,
       revokedAt: undefined,
     })
 
-    return { token, tokenId, label, prefix, createdAt: now }
+    return { token, tokenId, label, prefix, tokenType, createdAt: now }
   },
 })
 

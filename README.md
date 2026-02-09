@@ -22,6 +22,7 @@ onlycrabs.ai: `https://onlycrabs.ai`
 - Publish new soul versions with changelogs + tags.
 - Search via embeddings (vector index) instead of brittle keywords.
 - Star + comment; admins/mods can curate and approve skills.
+- Create quantum access tokens for advanced API capabilities (see `docs/quantum-access.md`).
 
 ## onlycrabs.ai (SOUL.md registry)
 
