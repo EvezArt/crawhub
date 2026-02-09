@@ -13,6 +13,7 @@ import { Route as UploadRouteImport } from './routes/upload'
 import { Route as StarsRouteImport } from './routes/stars'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ManagementRouteImport } from './routes/management'
+import { Route as LiveRouteImport } from './routes/live'
 import { Route as ImportRouteImport } from './routes/import'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -42,6 +43,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const ManagementRoute = ManagementRouteImport.update({
   id: '/management',
   path: '/management',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LiveRoute = LiveRouteImport.update({
+  id: '/live',
+  path: '/live',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ImportRoute = ImportRouteImport.update({
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/dashboard': typeof DashboardRoute
   '/import': typeof ImportRoute
+  '/live': typeof LiveRoute
   '/management': typeof ManagementRoute
   '/settings': typeof SettingsRoute
   '/stars': typeof StarsRoute
@@ -116,6 +123,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/dashboard': typeof DashboardRoute
   '/import': typeof ImportRoute
+  '/live': typeof LiveRoute
   '/management': typeof ManagementRoute
   '/settings': typeof SettingsRoute
   '/stars': typeof StarsRoute
@@ -133,6 +141,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/dashboard': typeof DashboardRoute
   '/import': typeof ImportRoute
+  '/live': typeof LiveRoute
   '/management': typeof ManagementRoute
   '/settings': typeof SettingsRoute
   '/stars': typeof StarsRoute
@@ -151,6 +160,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/import'
+    | '/live'
     | '/management'
     | '/settings'
     | '/stars'
@@ -167,6 +177,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/import'
+    | '/live'
     | '/management'
     | '/settings'
     | '/stars'
@@ -183,6 +194,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/import'
+    | '/live'
     | '/management'
     | '/settings'
     | '/stars'
@@ -200,6 +212,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   DashboardRoute: typeof DashboardRoute
   ImportRoute: typeof ImportRoute
+  LiveRoute: typeof LiveRoute
   ManagementRoute: typeof ManagementRoute
   SettingsRoute: typeof SettingsRoute
   StarsRoute: typeof StarsRoute
@@ -240,6 +253,13 @@ declare module '@tanstack/react-router' {
       path: '/management'
       fullPath: '/management'
       preLoaderRoute: typeof ManagementRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/live': {
+      id: '/live'
+      path: '/live'
+      fullPath: '/live'
+      preLoaderRoute: typeof LiveRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/import': {
@@ -320,6 +340,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   DashboardRoute: DashboardRoute,
   ImportRoute: ImportRoute,
+  LiveRoute: LiveRoute,
   ManagementRoute: ManagementRoute,
   SettingsRoute: SettingsRoute,
   StarsRoute: StarsRoute,
