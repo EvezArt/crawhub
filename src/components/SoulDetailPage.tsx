@@ -22,7 +22,7 @@ export function SoulDetailPage({ slug }: SoulDetailPageProps) {
   const { isAuthenticated, me } = useAuthStatus()
   const result = useQuery(api.souls.getBySlug, { slug }) as SoulBySlugResult | undefined
   const toggleStar = useMutation(api.soulStars.toggle)
-  const addComment = useMutation(api.soulComments.add)
+  const addComment = useMutation(api.soulComments.addComment)
   const removeComment = useMutation(api.soulComments.remove)
   const getReadme = useAction(api.souls.getReadme)
   const ensureSoulSeeds = useAction(api.seed.ensureSoulSeeds)

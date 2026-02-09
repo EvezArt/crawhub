@@ -478,8 +478,8 @@ function normalizeHex(value: string) {
 function toRgba(color: string, alpha: number) {
   const hex = normalizeHex(color).replace('#', '')
   if (hex.length !== 6) return color
-  const r = Number.parseInt(hex.slice(0, 2), 16)
-  const g = Number.parseInt(hex.slice(2, 4), 16)
-  const b = Number.parseInt(hex.slice(4, 6), 16)
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+  const redChannel = Number.parseInt(hex.slice(0, 2), 16)
+  const greenChannel = Number.parseInt(hex.slice(2, 4), 16)
+  const blueChannel = Number.parseInt(hex.slice(4, 6), 16)
+  return `rgba(${redChannel}, ${greenChannel}, ${blueChannel}, ${alpha})`
 }
