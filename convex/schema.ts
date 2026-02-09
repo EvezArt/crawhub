@@ -481,6 +481,16 @@ const userSkillRootInstalls = defineTable({
   .index('by_user_skill', ['userId', 'skillId'])
   .index('by_skill', ['skillId'])
 
+const openclawEvents = defineTable({
+  sessionKey: v.string(),
+  eventType: v.string(),
+  timestamp: v.number(),
+  payload: v.any(),
+  createdAt: v.number(),
+})
+  .index('by_session', ['sessionKey', 'timestamp'])
+  .index('by_session_created', ['sessionKey', 'createdAt'])
+
 export default defineSchema({
   ...authSchema,
   users,
@@ -511,4 +521,5 @@ export default defineSchema({
   userSyncRoots,
   userSkillInstalls,
   userSkillRootInstalls,
+  openclawEvents,
 })
