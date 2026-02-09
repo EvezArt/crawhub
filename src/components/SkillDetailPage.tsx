@@ -98,7 +98,9 @@ function useSecurityScan(sha256hash?: string, enabled = true) {
     return () => {
       cancelled = true
     }
-  }, [sha256hash, enabled, fetchVT])
+    // fetchVT is from useAction and is stable, no need to include in deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sha256hash, enabled])
 
   return { result, loading }
 }
@@ -341,8 +343,12 @@ export function SkillDetailPage({
     })
   }, [navigate, ownerParam, slug, wantsCanonicalRedirect])
 
-  const versionById = new Map<Id<'skillVersions'>, Doc<'skillVersions'>>(
-    (diffVersions ?? versions ?? []).map((version) => [version._id, version]),
+  const versionById = useMemo(
+    () =>
+      new Map<Id<'skillVersions'>, Doc<'skillVersions'>>(
+        (diffVersions ?? versions ?? []).map((version) => [version._id, version]),
+      ),
+    [diffVersions, versions],
   )
   const clawdis = (latestVersion?.parsed as { clawdis?: ClawdisSkillMetadata } | undefined)?.clawdis
   const osLabels = useMemo(() => formatOsList(clawdis?.os), [clawdis?.os])
@@ -352,9 +358,10 @@ export function SkillDetailPage({
   const nixSystems = clawdis?.nix?.systems ?? []
   const nixSnippet = nixPlugin ? formatNixInstallSnippet(nixPlugin) : null
   const configRequirements = clawdis?.config
-  const configExample = configRequirements?.example
-    ? formatConfigSnippet(configRequirements.example)
-    : null
+  const configExample = useMemo(
+    () => (configRequirements?.example ? formatConfigSnippet(configRequirements.example) : null),
+    [configRequirements?.example],
+  )
   const cliHelp = clawdis?.cliHelp
   const hasRuntimeRequirements = Boolean(
     clawdis?.emoji ||

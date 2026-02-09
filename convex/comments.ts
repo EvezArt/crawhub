@@ -15,10 +15,14 @@ export const listBySkill = query({
       .take(limit)
 
     const results: Array<{ comment: Doc<'comments'>; user: PublicUser | null }> = []
-    for (const comment of comments) {
-      if (comment.softDeletedAt) continue
-      const user = toPublicUser(await ctx.db.get(comment.userId))
-      results.push({ comment, user })
+    // Filter soft-deleted comments first
+    const activeComments = comments.filter((comment) => !comment.softDeletedAt)
+    // Batch fetch all users to avoid N+1 queries
+    const userResults = await Promise.all(activeComments.map((comment) => ctx.db.get(comment.userId)))
+
+    for (let i = 0; i < activeComments.length; i++) {
+      const user = toPublicUser(userResults[i])
+      results.push({ comment: activeComments[i], user })
     }
     return results
   },

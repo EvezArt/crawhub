@@ -827,14 +827,14 @@ export const listRecentVersions = query({
       owner: Doc<'users'> | null
     }> = []
 
-    for (const version of entries) {
-      const skill = await ctx.db.get(version.skillId)
-      if (!skill) {
-        results.push({ version, skill: null, owner: null })
-        continue
-      }
-      const owner = await ctx.db.get(skill.ownerUserId)
-      results.push({ version, skill, owner })
+    // Batch fetch all skills and owners to avoid N+1 queries
+    const skills = await Promise.all(entries.map((version) => ctx.db.get(version.skillId)))
+    const owners = await Promise.all(
+      skills.map((skill) => (skill ? ctx.db.get(skill.ownerUserId) : null)),
+    )
+
+    for (let i = 0; i < entries.length; i++) {
+      results.push({ version: entries[i], skill: skills[i], owner: owners[i] })
     }
 
     return results
@@ -956,13 +956,19 @@ async function countActiveReportsForUser(ctx: MutationCtx, userId: Id<'users'>) 
     .withIndex('by_user', (q) => q.eq('userId', userId))
     .collect()
 
+  // Batch fetch all skills and owners to avoid N+1 queries
+  const skills = await Promise.all(reports.map((report) => ctx.db.get(report.skillId)))
+  const owners = await Promise.all(
+    skills.map((skill) => (skill ? ctx.db.get(skill.ownerUserId) : null)),
+  )
+
   let count = 0
-  for (const report of reports) {
-    const skill = await ctx.db.get(report.skillId)
+  for (let i = 0; i < reports.length; i++) {
+    const skill = skills[i]
     if (!skill) continue
     if (skill.softDeletedAt) continue
     if (skill.moderationStatus === 'removed') continue
-    const owner = await ctx.db.get(skill.ownerUserId)
+    const owner = owners[i]
     if (!owner || owner.deletedAt) continue
     count += 1
     if (count >= MAX_ACTIVE_REPORTS_PER_USER) break
