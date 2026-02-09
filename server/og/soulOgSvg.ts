@@ -1,4 +1,5 @@
 import { FONT_MONO, FONT_SANS } from './ogAssets'
+import { escapeXml, wrapTextByChars } from './ogUtils'
 
 export type SoulOgSvgParams = {
   markDataUrl: string
@@ -7,75 +8,6 @@ export type SoulOgSvgParams = {
   ownerLabel: string
   versionLabel: string
   footer: string
-}
-
-function escapeXml(value: string) {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
-}
-
-function wrapText(value: string, maxChars: number, maxLines: number) {
-  const words = value.trim().split(/\s+/).filter(Boolean)
-  const lines: string[] = []
-  let current = ''
-
-  function pushLine(line: string) {
-    if (!line) return
-    lines.push(line)
-  }
-
-  function splitLongWord(word: string) {
-    if (word.length <= maxChars) return [word]
-    const parts: string[] = []
-    let remaining = word
-    while (remaining.length > maxChars) {
-      parts.push(`${remaining.slice(0, maxChars - 1)}…`)
-      remaining = remaining.slice(maxChars - 1)
-    }
-    if (remaining) parts.push(remaining)
-    return parts
-  }
-
-  for (const word of words) {
-    if (word.length > maxChars) {
-      if (current) {
-        pushLine(current)
-        current = ''
-        if (lines.length >= maxLines - 1) break
-      }
-      const parts = splitLongWord(word)
-      for (const part of parts) {
-        pushLine(part)
-        if (lines.length >= maxLines) break
-      }
-      current = ''
-      if (lines.length >= maxLines - 1) break
-      continue
-    }
-
-    const next = current ? `${current} ${word}` : word
-    if (next.length <= maxChars) {
-      current = next
-      continue
-    }
-    pushLine(current)
-    current = word
-    if (lines.length >= maxLines - 1) break
-  }
-  if (lines.length < maxLines && current) pushLine(current)
-  if (lines.length > maxLines) lines.length = maxLines
-
-  const usedWords = lines.join(' ').split(/\s+/).filter(Boolean).length
-  if (usedWords < words.length) {
-    const last = lines.at(-1) ?? ''
-    const trimmed = last.length > maxChars ? last.slice(0, maxChars) : last
-    lines[lines.length - 1] = `${trimmed.replace(/\s+$/g, '').replace(/[.。,;:!?]+$/g, '')}…`
-  }
-  return lines
 }
 
 export function buildSoulOgSvg(params: SoulOgSvgParams) {
@@ -88,8 +20,8 @@ export function buildSoulOgSvg(params: SoulOgSvgParams) {
   const cardH = 456
   const cardR = 34
 
-  const titleLines = wrapText(rawTitle, 22, 2)
-  const descLines = wrapText(rawDescription, 42, 3)
+  const titleLines = wrapTextByChars(rawTitle, 22, 2)
+  const descLines = wrapTextByChars(rawDescription, 42, 3)
 
   const titleFontSize = titleLines.length > 1 || rawTitle.length > 24 ? 72 : 80
   const titleY = titleLines.length > 1 ? 258 : 280
