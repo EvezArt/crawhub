@@ -41,11 +41,11 @@ function CliAuth() {
 
     const run = async () => {
       setStatus('Creating token…')
-      const result = await createToken({ label })
-      setToken(result.token)
+      const createdToken = await createToken({ label })
+      setToken(createdToken.token)
       setStatus('Redirecting to CLI…')
       const hash = new URLSearchParams()
-      hash.set('token', result.token)
+      hash.set('token', createdToken.token)
       hash.set('registry', registry)
       hash.set('state', state)
       window.location.assign(`${redirectUri}#${hash.toString()}`)

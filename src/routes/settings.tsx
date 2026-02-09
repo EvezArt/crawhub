@@ -63,8 +63,8 @@ function Settings() {
 
   async function onCreateToken() {
     const label = tokenLabel.trim() || 'CLI token'
-    const result = await createToken({ label })
-    setNewToken(result.token)
+    const createdToken = await createToken({ label })
+    setNewToken(createdToken.token)
   }
 
   return (
