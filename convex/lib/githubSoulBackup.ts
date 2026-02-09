@@ -147,10 +147,17 @@ export async function backupSoulToGitHub(
     sha: string | null
   }> = []
 
-  for (const file of params.files) {
-    const content = await fetchStorageBase64(ctx, file.storageId)
-    const blobSha = await createBlob(resolved.token, resolved.repoOwner, resolved.repoName, content)
-    const path = `${soulRoot}/${file.path}`
+  // Parallelize file fetching and blob creation
+  const fileEntries = await Promise.all(
+    params.files.map(async (file) => {
+      const content = await fetchStorageBase64(ctx, file.storageId)
+      const blobSha = await createBlob(resolved.token, resolved.repoOwner, resolved.repoName, content)
+      const path = `${soulRoot}/${file.path}`
+      return { path, blobSha }
+    }),
+  )
+
+  for (const { path, blobSha } of fileEntries) {
     newPaths.add(path)
     treeEntries.push({ path, mode: '100644', type: 'blob', sha: blobSha })
   }

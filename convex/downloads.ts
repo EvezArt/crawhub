@@ -63,12 +63,22 @@ export const downloadZip = httpAction(async (ctx, request) => {
   }
 
   const entries: Array<{ path: string; bytes: Uint8Array }> = []
-  for (const file of version.files) {
-    const blob = await ctx.storage.get(file.storageId)
-    if (!blob) continue
-    const buffer = new Uint8Array(await blob.arrayBuffer())
-    entries.push({ path: file.path, bytes: buffer })
+
+  // Parallelize file loading for better performance
+  const fileResults = await Promise.all(
+    version.files.map(async (file) => {
+      const blob = await ctx.storage.get(file.storageId)
+      if (!blob) return null
+      const buffer = new Uint8Array(await blob.arrayBuffer())
+      return { path: file.path, bytes: buffer }
+    }),
+  )
+
+  // Filter out null results
+  for (const result of fileResults) {
+    if (result) entries.push(result)
   }
+
   const zipArray = buildDeterministicZip(entries, {
     ownerId: String(skill.ownerUserId),
     slug: skill.slug,
