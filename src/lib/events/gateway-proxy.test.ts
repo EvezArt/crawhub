@@ -2,7 +2,7 @@
  * Test for gateway proxy event types and helpers
  */
 
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import type { AgentEvent, EventProxyResponse } from '../types/agent-events'
 import { getGatewayConfig } from './gateway-proxy'
 

@@ -451,6 +451,53 @@ const userSkillRootInstalls = defineTable({
   .index('by_user_skill', ['userId', 'skillId'])
   .index('by_skill', ['skillId'])
 
+const physicalPassoverEvents = defineTable({
+  traceId: v.string(),
+  stage: v.union(
+    v.literal('photon_capture'),
+    v.literal('sensor_read'),
+    v.literal('pixel_array'),
+    v.literal('image_decode'),
+    v.literal('ocr_preprocess'),
+    v.literal('text_detection'),
+    v.literal('text_recognition'),
+    v.literal('text_postprocess'),
+    v.literal('token_generation'),
+    v.literal('embedding_creation'),
+    v.literal('semantic_parse'),
+  ),
+  stageIndex: v.number(),
+  timestamp: v.number(),
+  durationMs: v.optional(v.number()),
+  metadata: v.optional(v.any()),
+  processedAt: v.optional(v.number()),
+})
+  .index('by_trace', ['traceId'])
+  .index('by_trace_stage', ['traceId', 'stageIndex'])
+  .index('by_timestamp', ['timestamp'])
+  .index('by_unprocessed', ['processedAt'])
+
+const physicalPassoverTraces = defineTable({
+  traceId: v.string(),
+  userId: v.optional(v.id('users')),
+  source: v.string(),
+  startedAt: v.number(),
+  completedAt: v.optional(v.number()),
+  totalStages: v.number(),
+  completedStages: v.number(),
+  status: v.union(
+    v.literal('pending'),
+    v.literal('processing'),
+    v.literal('completed'),
+    v.literal('failed'),
+  ),
+  result: v.optional(v.any()),
+  errorMessage: v.optional(v.string()),
+})
+  .index('by_trace', ['traceId'])
+  .index('by_user', ['userId'])
+  .index('by_status_started', ['status', 'startedAt'])
+
 export default defineSchema({
   ...authSchema,
   users,
@@ -480,4 +527,6 @@ export default defineSchema({
   userSyncRoots,
   userSkillInstalls,
   userSkillRootInstalls,
+  physicalPassoverEvents,
+  physicalPassoverTraces,
 })

@@ -2,10 +2,10 @@
  * Test for AI-usable API types and structures
  */
 
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { CRAWFATHER_SKILL } from '../crawfather-skill'
+import type { SkillCapability, SkillMeta, SkillStats } from './skill'
 import { toSkillRecord } from './skill'
-import type { SkillStats, SkillCapability, SkillMeta } from './skill'
 
 describe('AI-usable skill types', () => {
   it('should have correct SkillStats structure', () => {
