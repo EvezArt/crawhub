@@ -451,6 +451,43 @@ const userSkillRootInstalls = defineTable({
   .index('by_user_skill', ['userId', 'skillId'])
   .index('by_skill', ['skillId'])
 
+// Physical Passover Domain tables
+const physicalPassoverEvents = defineTable({
+  traceId: v.string(),
+  stage: v.string(),
+  timestamp: v.number(),
+  eventData: v.any(), // Stores stage-specific event data
+  createdAt: v.number(),
+})
+  .index('by_trace', ['traceId'])
+  .index('by_trace_stage', ['traceId', 'stage'])
+  .index('by_timestamp', ['timestamp'])
+
+const physicalPassoverTraces = defineTable({
+  traceId: v.string(),
+  sessionId: v.optional(v.string()),
+  startTime: v.number(),
+  endTime: v.optional(v.number()),
+  inputHash: v.optional(v.string()),
+  promptHash: v.optional(v.string()),
+  modelId: v.optional(v.string()),
+  modelVersion: v.optional(v.string()),
+  confidence: v.optional(v.number()),
+  failurePlanes: v.optional(v.array(v.string())),
+  blindSpots: v.optional(v.array(v.string())),
+  extractedEntities: v.optional(v.array(v.string())),
+  captions: v.optional(v.array(v.string())),
+  ocrStrings: v.optional(v.array(v.string())),
+  sceneGraph: v.optional(v.any()),
+  status: v.optional(v.string()),
+  errorMessage: v.optional(v.string()),
+  createdAt: v.number(),
+})
+  .index('by_trace_id', ['traceId'])
+  .index('by_session', ['sessionId'])
+  .index('by_start_time', ['startTime'])
+  .index('by_status', ['status'])
+
 export default defineSchema({
   ...authSchema,
   users,
@@ -480,4 +517,6 @@ export default defineSchema({
   userSyncRoots,
   userSkillInstalls,
   userSkillRootInstalls,
+  physicalPassoverEvents,
+  physicalPassoverTraces,
 })
