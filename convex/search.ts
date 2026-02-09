@@ -226,17 +226,23 @@ export const searchSouls: ReturnType<typeof action> = action({
 export const hydrateSoulResults = internalQuery({
   args: { embeddingIds: v.array(v.id('soulEmbeddings')) },
   handler: async (ctx, args): Promise<HydratedSoulEntry[]> => {
-    const entries: HydratedSoulEntry[] = []
+    // Batch fetch all embeddings, souls, and versions to avoid N+1 queries
+    const embeddings = await Promise.all(args.embeddingIds.map((id) => ctx.db.get(id)))
 
-    for (const embeddingId of args.embeddingIds) {
-      const embedding = await ctx.db.get(embeddingId)
-      if (!embedding) continue
-      const soul = await ctx.db.get(embedding.soulId)
+    // Filter out null embeddings and batch fetch souls and versions
+    const validEmbeddings = embeddings.filter((e) => e != null)
+    const [souls, versions] = await Promise.all([
+      Promise.all(validEmbeddings.map((e) => ctx.db.get(e.soulId))),
+      Promise.all(validEmbeddings.map((e) => ctx.db.get(e.versionId))),
+    ])
+
+    const entries: HydratedSoulEntry[] = []
+    for (let i = 0; i < validEmbeddings.length; i++) {
+      const soul = souls[i]
       if (soul?.softDeletedAt) continue
-      const version = await ctx.db.get(embedding.versionId)
       const publicSoul = toPublicSoul(soul)
       if (!publicSoul) continue
-      entries.push({ embeddingId, soul: publicSoul, version })
+      entries.push({ embeddingId: validEmbeddings[i]._id, soul: publicSoul, version: versions[i] })
     }
 
     return entries

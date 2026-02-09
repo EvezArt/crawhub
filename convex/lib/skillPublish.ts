@@ -104,14 +104,19 @@ export async function publishVersionForUser(
   const clawdis = parseClawdisMetadata(frontmatter)
   const metadata = mergeSourceIntoMetadata(getFrontmatterMetadata(frontmatter), args.source)
 
-  const otherFiles = [] as Array<{ path: string; content: string }>
-  for (const file of safeFiles) {
-    if (!file.path || file.path.toLowerCase().endsWith('.md')) continue
-    if (!isTextFile(file.path, file.contentType ?? undefined)) continue
-    const content = await fetchText(ctx, file.storageId)
-    otherFiles.push({ path: file.path, content })
-    if (otherFiles.length >= MAX_FILES_FOR_EMBEDDING) break
-  }
+  // Parallelize file fetching to avoid sequential blocking
+  const textFiles = safeFiles.filter(
+    (file) =>
+      file.path &&
+      !file.path.toLowerCase().endsWith('.md') &&
+      isTextFile(file.path, file.contentType ?? undefined),
+  )
+  const filesToFetch = textFiles.slice(0, MAX_FILES_FOR_EMBEDDING)
+  const fileContents = await Promise.all(filesToFetch.map((file) => fetchText(ctx, file.storageId)))
+  const otherFiles = filesToFetch.map((file, i) => ({
+    path: file.path as string,
+    content: fileContents[i],
+  }))
 
   const embeddingText = buildEmbeddingText({
     frontmatter,

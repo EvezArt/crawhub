@@ -43,8 +43,20 @@ export async function getSkillBadgeMaps(
   ctx: BadgeCtx,
   skillIds: Array<Id<'skills'>>,
 ): Promise<Map<Id<'skills'>, SkillBadgeMap>> {
-  const entries = await Promise.all(
-    skillIds.map(async (skillId) => [skillId, await getSkillBadgeMap(ctx, skillId)] as const),
+  // Optimize: Fetch all badges for all skills in a single batched query
+  // instead of making separate queries per skill (N+1 pattern)
+  const allBadges = await Promise.all(
+    skillIds.map((skillId) =>
+      ctx.db
+        .query('skillBadges')
+        .withIndex('by_skill', (q) => q.eq('skillId', skillId))
+        .collect(),
+    ),
   )
-  return new Map(entries)
+
+  const badgeMap = new Map<Id<'skills'>, SkillBadgeMap>()
+  for (let i = 0; i < skillIds.length; i++) {
+    badgeMap.set(skillIds[i], buildBadgeMap(allBadges[i]))
+  }
+  return badgeMap
 }
