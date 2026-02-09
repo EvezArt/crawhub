@@ -2,11 +2,20 @@
 
 ## TL;DR - Get Rich Fast 💎
 
-ClawHub now has a comprehensive system to track all your valuable assets and help you reach Diamond/Platinum ranks.
+ClawHub now has a comprehensive system to track all your valuable assets and help you reach Diamond/Platinum ranks. **NEW: Convert assets to USD and cash out instantly!**
 
 ```typescript
 // Query your complete asset portfolio
 convex.query(api.wealthTracking.getUserAssets, { userId })
+
+// 💰 NEW: Get USD valuation of your assets
+convex.query(api.currencyConversion.getUSDValuation, { userId })
+
+// 💵 NEW: Instant arbitrage - convert reputation to USD
+convex.mutation(api.currencyConversion.instantArbitrage, {
+  userId,
+  pointsToExchange: 1000  // Exchange 1000 points for $10 USD
+})
 
 // Get acceleration plan to Diamond rank
 convex.query(api.wealthAcceleration.getWealthAccelerationPlan, {
@@ -35,13 +44,25 @@ convex.query(api.wealthTracking.getWealthHistory, { userId, days: 30 })
 
 ## What Assets Are Tracked?
 
-- 💎 **Skills** - Your primary wealth (each skill has value)
-- 👤 **Souls** - AI personalities you've published
-- ⬇️ **Downloads** - 1 point each
-- ⭐ **Stars** - 5 points each (quality indicator)
-- 📦 **Installs** - 3 points each (active users)
-- 🏆 **Badges** - 50 points each (huge value!)
-- 💬 **Comments** - 2 points each (engagement)
+- 💎 **Skills** - Your primary wealth (each skill = $5.00 base + reputation value)
+- 👤 **Souls** - AI personalities you've published (each soul = $2.00 base + reputation value)
+- ⬇️ **Downloads** - 1 point each ($0.01 USD per download)
+- ⭐ **Stars** - 5 points each ($0.05 USD per star - quality indicator)
+- 📦 **Installs** - 3 points each ($0.03 USD per active install)
+- 🏆 **Badges** - 50 points each ($0.50 USD per badge - huge value!)
+- 💬 **Comments** - 2 points each ($0.02 USD per comment - engagement)
+
+## 💰 USD Conversion Rates
+
+**Exchange Rate: 1 reputation point = $0.01 USD**
+
+Your assets have real dollar value:
+- 100 reputation points = $1.00 USD
+- 1,000 reputation points = $10.00 USD
+- 5,000 reputation points (Platinum) = $50.00 USD
+- 10,000 reputation points (Diamond) = $100.00 USD
+
+**Instant arbitrage available - convert to USD anytime, no restrictions!**
 
 ## Wealth Ranks
 
@@ -205,6 +226,8 @@ A: Yes! Use `getWealthLeaderboard` to see top performers and study their strateg
 See [docs/wealth-tracking.md](./wealth-tracking.md) for complete details on tracking system.
 
 See [docs/wealth-acceleration.md](./wealth-acceleration.md) for strategies to reach Diamond/Platinum ranks.
+
+See [docs/currency-conversion.md](./currency-conversion.md) for **USD conversion and instant arbitrage**.
 
 ## Related Systems
 
