@@ -8,6 +8,11 @@ import { api } from './_generated/api'
 import { httpAction } from './_generated/server'
 
 /**
+ * Maximum number of events that can be requested in a single query
+ */
+const MAX_EVENT_LIMIT = 1000
+
+/**
  * GET /api/v1/openclaw/events?sessionKey={key}&since={timestamp}
  *
  * Returns events for a specific session key.
@@ -19,8 +24,31 @@ export const getOpenclawEventsHttp = httpAction(async (ctx, request) => {
   const sinceStr = url.searchParams.get('since')
   const limitStr = url.searchParams.get('limit')
 
-  const sinceTimestamp = sinceStr ? Number.parseInt(sinceStr, 10) : undefined
-  const limit = limitStr ? Number.parseInt(limitStr, 10) : 100
+  // Validate and parse numeric parameters
+  let sinceTimestamp: number | undefined
+  if (sinceStr !== null) {
+    const parsed = Number.parseInt(sinceStr, 10)
+    if (Number.isNaN(parsed) || parsed < 0) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid "since" parameter: must be a positive integer' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } },
+      )
+    }
+    sinceTimestamp = parsed
+  }
+
+  let limit = 100
+  if (limitStr !== null) {
+    const parsed = Number.parseInt(limitStr, 10)
+    if (Number.isNaN(parsed) || parsed < 1) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid "limit" parameter: must be a positive integer' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } },
+      )
+    }
+    // Enforce maximum limit to prevent resource exhaustion
+    limit = Math.min(parsed, MAX_EVENT_LIMIT)
+  }
 
   // Fetch events from the database
   const events = await ctx.runQuery(api.openclawEvents.listBySession, {

@@ -3,8 +3,8 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import type { AgentEvent } from './openclaw-types'
 import { getHypothesesArray, reduceEventsToHypotheses, sortHypotheses } from './hypothesisReducer'
+import type { AgentEvent } from './openclaw-types'
 
 describe('hypothesisReducer', () => {
   describe('reduceEventsToHypotheses', () => {

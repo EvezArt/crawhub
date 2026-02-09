@@ -7,6 +7,11 @@
 import type { AgentEvent, HypothesisStatus, HypothesisSummary } from './openclaw-types'
 
 /**
+ * Default confidence score for new hypotheses when not specified
+ */
+const DEFAULT_HYPOTHESIS_SCORE = 0.5
+
+/**
  * Reduce events into a map of hypotheses
  */
 export function reduceEventsToHypotheses(events: AgentEvent[]): Map<string, HypothesisSummary> {
@@ -28,7 +33,7 @@ export function reduceEventsToHypotheses(events: AgentEvent[]): Map<string, Hypo
           hypotheses.set(hypothesisId, {
             id: hypothesisId,
             text: payload.hypothesis || 'Unknown hypothesis',
-            score: payload.score ?? 0.5,
+            score: payload.score ?? DEFAULT_HYPOTHESIS_SCORE,
             status: (payload.status as HypothesisStatus) || 'active',
             createdAt: event.timestamp,
             updatedAt: event.timestamp,
@@ -54,7 +59,7 @@ export function reduceEventsToHypotheses(events: AgentEvent[]): Map<string, Hypo
           hypotheses.set(hypothesisId, {
             id: hypothesisId,
             text: payload.hypothesis || 'Unknown hypothesis',
-            score: payload.score ?? 0.5,
+            score: payload.score ?? DEFAULT_HYPOTHESIS_SCORE,
             status: (payload.status as HypothesisStatus) || 'active',
             createdAt: event.timestamp,
             updatedAt: event.timestamp,
