@@ -32,6 +32,7 @@ import {
   usersPostRouterV1Http,
   whoamiV1Http,
 } from './httpApiV1'
+import { getOpenclawEventsHttp, postOpenclawEventHttp } from './openclawEventsHttp'
 
 const http = httpRouter()
 
@@ -143,6 +144,18 @@ http.route({
   pathPrefix: `${ApiRoutes.souls}/`,
   method: 'DELETE',
   handler: soulsDeleteRouterV1Http,
+})
+
+http.route({
+  path: ApiRoutes.openclawEvents,
+  method: 'GET',
+  handler: getOpenclawEventsHttp,
+})
+
+http.route({
+  path: ApiRoutes.openclawEvents,
+  method: 'POST',
+  handler: postOpenclawEventHttp,
 })
 
 // TODO: remove legacy /api routes after deprecation window.
