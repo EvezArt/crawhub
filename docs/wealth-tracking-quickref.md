@@ -2,7 +2,7 @@
 
 ## TL;DR - Get Rich Fast 💎
 
-ClawHub now has a comprehensive system to track all your valuable assets and help you reach Diamond/Platinum ranks. **NEW: Convert assets to USD and cash out instantly!**
+ClawHub now has a comprehensive system to track all your valuable assets and help you reach Diamond/Platinum ranks. **NEW: Convert assets to USD and cash out instantly! PLUS: View in 20+ currencies!**
 
 ```typescript
 // Query your complete asset portfolio
@@ -16,6 +16,15 @@ convex.mutation(api.currencyConversion.instantArbitrage, {
   userId,
   pointsToExchange: 1000  // Exchange 1000 points for $10 USD
 })
+
+// 🌍 NEW: View portfolio in ANY currency (20+ supported)
+convex.query(api.multiCurrency.getValuationInCurrency, {
+  userId,
+  currency: 'EUR'  // EUR, GBP, JPY, CNY, INR, etc.
+})
+
+// 🌎 NEW: See value in ALL currencies at once
+convex.query(api.multiCurrency.getAllCurrencyValuations, { userId })
 
 // Get acceleration plan to Diamond rank
 convex.query(api.wealthAcceleration.getWealthAccelerationPlan, {
@@ -63,6 +72,18 @@ Your assets have real dollar value:
 - 10,000 reputation points (Diamond) = $100.00 USD
 
 **Instant arbitrage available - convert to USD anytime, no restrictions!**
+
+## 🌍 Multi-Currency Support (20+ Currencies)
+
+**View your portfolio in ANY currency:**
+- 🇺🇸 USD ($100) | 🇪🇺 EUR (€92) | 🇬🇧 GBP (£79)
+- 🇯🇵 JPY (¥14,850) | 🇨🇳 CNY (¥724) | 🇮🇳 INR (₹8,320)
+- 🇨🇦 CAD (C$136) | 🇦🇺 AUD (A$153) | 🇰🇷 KRW (₩134,000)
+- Plus: CHF, BRL, MXN, RUB, ZAR, SGD, HKD, SEK, NOK, DKK, NZD
+
+**Cross-platform translation - your assets, your currency, anywhere!**
+
+See [docs/multi-currency.md](./multi-currency.md) for complete currency list and examples.
 
 ## Wealth Ranks
 
@@ -228,6 +249,8 @@ See [docs/wealth-tracking.md](./wealth-tracking.md) for complete details on trac
 See [docs/wealth-acceleration.md](./wealth-acceleration.md) for strategies to reach Diamond/Platinum ranks.
 
 See [docs/currency-conversion.md](./currency-conversion.md) for **USD conversion and instant arbitrage**.
+
+See [docs/multi-currency.md](./multi-currency.md) for **20+ currencies and cross-platform value translation**.
 
 ## Related Systems
 
