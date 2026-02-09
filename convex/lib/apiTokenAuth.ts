@@ -4,7 +4,12 @@ import type { Doc } from '../_generated/dataModel'
 import type { ActionCtx } from '../_generated/server'
 import { hashToken } from './tokens'
 
-type TokenAuthResult = { user: Doc<'users'>; userId: Doc<'users'>['_id'] }
+type TokenAuthResult = {
+  user: Doc<'users'>
+  userId: Doc<'users'>['_id']
+  token: Doc<'apiTokens'>
+  isQuantum: boolean
+}
 
 export async function requireApiTokenUser(
   ctx: ActionCtx,
@@ -24,7 +29,12 @@ export async function requireApiTokenUser(
   if (!user || user.deletedAt) throw new ConvexError('Unauthorized')
 
   await ctx.runMutation(internal.tokens.touchInternal, { tokenId: apiToken._id })
-  return { user, userId: user._id }
+  return {
+    user,
+    userId: user._id,
+    token: apiToken,
+    isQuantum: apiToken.tokenType === 'quantum',
+  }
 }
 
 function parseBearerToken(header: string | null) {

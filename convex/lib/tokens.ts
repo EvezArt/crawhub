@@ -1,6 +1,7 @@
 const encoder = new TextEncoder()
 
 export const API_TOKEN_PREFIX = 'clh_'
+export const QUANTUM_TOKEN_PREFIX = 'clhq_'
 
 export async function hashToken(token: string) {
   const bytes = encoder.encode(token)
@@ -8,12 +9,13 @@ export async function hashToken(token: string) {
   return toHex(new Uint8Array(digest))
 }
 
-export function generateToken() {
+export function generateToken(type: 'standard' | 'quantum' = 'standard') {
   const bytes = new Uint8Array(32)
   crypto.getRandomValues(bytes)
-  const token = `${API_TOKEN_PREFIX}${toBase64Url(bytes)}`
-  const prefix = token.slice(0, 12)
-  return { token, prefix }
+  const prefix = type === 'quantum' ? QUANTUM_TOKEN_PREFIX : API_TOKEN_PREFIX
+  const token = `${prefix}${toBase64Url(bytes)}`
+  const tokenPrefix = token.slice(0, type === 'quantum' ? 13 : 12)
+  return { token, prefix: tokenPrefix, type }
 }
 
 function toHex(bytes: Uint8Array) {

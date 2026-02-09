@@ -390,12 +390,15 @@ const apiTokens = defineTable({
   label: v.string(),
   prefix: v.string(),
   tokenHash: v.string(),
+  tokenType: v.optional(v.union(v.literal('standard'), v.literal('quantum'))),
+  quantumCapabilities: v.optional(v.array(v.string())),
   createdAt: v.number(),
   lastUsedAt: v.optional(v.number()),
   revokedAt: v.optional(v.number()),
 })
   .index('by_user', ['userId'])
   .index('by_hash', ['tokenHash'])
+  .index('by_type', ['tokenType'])
 
 const rateLimits = defineTable({
   key: v.string(),
@@ -451,6 +454,24 @@ const userSkillRootInstalls = defineTable({
   .index('by_user_skill', ['userId', 'skillId'])
   .index('by_skill', ['skillId'])
 
+const quantumAccessProofs = defineTable({
+  userId: v.id('users'),
+  tokenId: v.id('apiTokens'),
+  proofType: v.union(v.literal('inline'), v.literal('hardware'), v.literal('conventional')),
+  capability: v.string(),
+  proofData: v.object({
+    method: v.string(),
+    timestamp: v.number(),
+    metadata: v.optional(v.any()),
+  }),
+  verified: v.boolean(),
+  createdAt: v.number(),
+})
+  .index('by_user', ['userId'])
+  .index('by_token', ['tokenId'])
+  .index('by_type', ['proofType'])
+  .index('by_verified', ['verified', 'createdAt'])
+
 export default defineSchema({
   ...authSchema,
   users,
@@ -480,4 +501,5 @@ export default defineSchema({
   userSyncRoots,
   userSkillInstalls,
   userSkillRootInstalls,
+  quantumAccessProofs,
 })

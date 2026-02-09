@@ -32,10 +32,23 @@ import {
   usersPostRouterV1Http,
   whoamiV1Http,
 } from './httpApiV1'
+import { proveAccess, validateProof } from './httpQuantumAccess'
 
 const http = httpRouter()
 
 auth.addHttpRoutes(http)
+
+http.route({
+  path: '/api/v1/quantum/prove',
+  method: 'POST',
+  handler: proveAccess,
+})
+
+http.route({
+  path: '/api/v1/quantum/validate',
+  method: 'GET',
+  handler: validateProof,
+})
 
 http.route({
   path: ApiRoutes.download,
