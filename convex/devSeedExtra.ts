@@ -533,8 +533,8 @@ export const seedExtraSkillsInternal = internalAction({
       results.push({ slug: spec.slug, ok: result.ok, skipped: result.skipped })
     }
 
-    const created = results.filter((r) => !r.skipped).length
-    const skipped = results.filter((r) => r.skipped).length
+    const created = results.filter((result) => !result.skipped).length
+    const skipped = results.filter((result) => result.skipped).length
 
     return { ok: true, total: results.length, created, skipped }
   },

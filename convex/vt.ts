@@ -165,7 +165,7 @@ export const scanWithVirusTotal = internalAction({
     // Calculate SHA-256 of the ZIP (this hash includes _meta.json)
     const hashBuffer = await crypto.subtle.digest('SHA-256', zipArray)
     const sha256hash = Array.from(new Uint8Array(hashBuffer))
-      .map((b) => b.toString(16).padStart(2, '0'))
+      .map((byte) => byte.toString(16).padStart(2, '0'))
       .join('')
 
     // Update version with hash
@@ -180,7 +180,7 @@ export const scanWithVirusTotal = internalAction({
 
       if (existingFile) {
         const aiResult = existingFile.data.attributes.crowdsourced_ai_results?.find(
-          (r) => r.category === 'code_insight',
+          (result) => result.category === 'code_insight',
         )
 
         if (aiResult) {
