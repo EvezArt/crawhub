@@ -1,20 +1,35 @@
 # Wealth Tracking Quick Reference
 
-## TL;DR
+## TL;DR - Get Rich Fast 💎
 
-ClawHub now has a comprehensive system to track all your valuable assets and help you accumulate maximum wealth.
+ClawHub now has a comprehensive system to track all your valuable assets and help you reach Diamond/Platinum ranks.
 
-```bash
-# Query your complete asset portfolio
+```typescript
+// Query your complete asset portfolio
 convex.query(api.wealthTracking.getUserAssets, { userId })
 
-# See where you rank
+// Get acceleration plan to Diamond rank
+convex.query(api.wealthAcceleration.getWealthAccelerationPlan, {
+  userId,
+  targetRank: 'diamond'
+})
+
+// Preview different strategies
+convex.query(api.wealthAcceleration.simulateWealthBoost, {
+  userId,
+  actions: [
+    { action: 'earn_badges', quantity: 5 },
+    { action: 'boost_stars', quantity: 100 }
+  ]
+})
+
+// See where you rank
 convex.query(api.wealthTracking.getWealthLeaderboard, { limit: 100 })
 
-# Find market opportunities
+// Find market opportunities
 convex.query(api.wealthTracking.discoverOpportunities, {})
 
-# Track your growth
+// Track your growth
 convex.query(api.wealthTracking.getWealthHistory, { userId, days: 30 })
 ```
 
@@ -58,6 +73,29 @@ The system automatically tells you what's missing:
 3. **Keep Users Active** - Current installs = 3× value
 4. **Diversify** - Multiple skills spread risk
 5. **Find Gaps** - Use opportunity scanner for untapped niches
+
+## High-Impact Actions (Ranked by ROI)
+
+1. 🏆 **Earn Badges** → 50 points each (HIGHEST ROI!)
+2. ⭐ **Boost Stars** → 5 points each
+3. 📦 **Boost Current Installs** → 3 points each
+4. 📝 **Publish Skills** → ~500 points each
+5. 👤 **Publish Souls** → ~200 points each
+6. ⬇️ **Boost Downloads** → 1 point each
+
+## Fastest Path to Diamond (10,000 points)
+
+**Elite Strategy** (12-24 weeks):
+- Earn 20 badges = 1,000 points
+- Publish 10 skills = 5,000 points
+- Boost to 800 stars = 4,000 points
+
+**Star Power** (16-32 weeks):
+- Publish 8 skills = 4,000 points
+- Earn 12 badges = 600 points
+- Boost to 1,080 stars = 5,400 points
+
+See [wealth-acceleration.md](./wealth-acceleration.md) for detailed strategies.
 
 ## Example: Check Your Wealth
 
@@ -164,13 +202,9 @@ A: Yes! Use `getWealthLeaderboard` to see top performers and study their strateg
 
 ## Full Documentation
 
-See [docs/wealth-tracking.md](./wealth-tracking.md) for complete details on:
-- All queries and parameters
-- Detailed valuation formulas
-- Advanced strategies
-- Integration guides
-- API examples
-- Best practices
+See [docs/wealth-tracking.md](./wealth-tracking.md) for complete details on tracking system.
+
+See [docs/wealth-acceleration.md](./wealth-acceleration.md) for strategies to reach Diamond/Platinum ranks.
 
 ## Related Systems
 
