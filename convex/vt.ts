@@ -221,12 +221,20 @@ export const scanWithVirusTotal = internalAction({
 
     // Build deterministic ZIP with stable meta (no version history).
     const entries: Array<{ path: string; bytes: Uint8Array }> = []
-    for (const file of version.files) {
-      const content = await ctx.storage.get(file.storageId)
-      if (content) {
+
+    // Parallelize file loading for better performance
+    const fileResults = await Promise.all(
+      version.files.map(async (file) => {
+        const content = await ctx.storage.get(file.storageId)
+        if (!content) return null
         const buffer = new Uint8Array(await content.arrayBuffer())
-        entries.push({ path: file.path, bytes: buffer })
-      }
+        return { path: file.path, bytes: buffer }
+      }),
+    )
+
+    // Filter out null results
+    for (const result of fileResults) {
+      if (result) entries.push(result)
     }
 
     if (entries.length === 0) {
