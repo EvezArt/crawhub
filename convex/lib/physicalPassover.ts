@@ -329,12 +329,12 @@ export function computeRecipeId(recipe: {
     canonicalObj[key] = recipe[key as keyof typeof recipe]
   }
   const canonical = JSON.stringify(canonicalObj)
-  // In production, use a proper hash function (SHA256)
-  // For now, use a simple hash based on the full canonical string
+  // Simple hash for development/testing
+  // PRODUCTION: Replace with crypto.subtle.digest('SHA-256', ...) or similar
   let hash = 0
   for (let i = 0; i < canonical.length; i++) {
     hash = (hash << 5) - hash + canonical.charCodeAt(i)
-    hash = hash & hash // Convert to 32bit integer
+    hash |= 0 // Convert to 32bit integer
   }
   const hashStr = Math.abs(hash).toString(36)
   return `recipe_${hashStr}`
@@ -345,8 +345,11 @@ export function computeRecipeId(recipe: {
  * This enables exact replayability and cache validation
  */
 export function computeTensorHash(tensorData: ArrayBuffer | number[], shape: number[]): string {
-  // In production, compute SHA256 over the tensor data + shape
-  // For now, return a placeholder that includes shape info
+  // WARNING: This is a placeholder implementation for development/testing
+  // PRODUCTION: Implement proper SHA256 hashing over tensor data
+  //   - For ArrayBuffer: crypto.subtle.digest('SHA-256', tensorData)
+  //   - For number[]: serialize to ArrayBuffer first, then hash
+  // Without proper hashing, replayability and cache validation are not guaranteed
   const shapeStr = shape.join('x')
   const sizeBytes =
     tensorData instanceof ArrayBuffer ? tensorData.byteLength : tensorData.length * 8

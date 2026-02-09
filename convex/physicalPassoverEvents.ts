@@ -253,10 +253,11 @@ export const getPassoverStats = query({
     const timeRangeMs = args.timeRangeMs ?? 24 * 60 * 60 * 1000 // Default: last 24 hours
     const cutoffTime = Date.now() - timeRangeMs
 
-    const traces = await ctx.db.query('physicalPassoverTraces').withIndex('by_start_time').collect()
-
-    // Filter to time range
-    const recentTraces = traces.filter((t) => t.startTime >= cutoffTime)
+    // Use index filtering to only fetch traces within the time range
+    const recentTraces = await ctx.db
+      .query('physicalPassoverTraces')
+      .withIndex('by_start_time', (q) => q.gte('startTime', cutoffTime))
+      .collect()
 
     // Calculate statistics
     const total = recentTraces.length
@@ -332,15 +333,13 @@ export const deletePassoverTrace = mutation({
 
     await ctx.db.delete(trace._id)
 
-    // Delete all events for this trace
+    // Delete all events for this trace in parallel
     const events = await ctx.db
       .query('physicalPassoverEvents')
       .withIndex('by_trace', (q) => q.eq('traceId', args.traceId))
       .collect()
 
-    for (const event of events) {
-      await ctx.db.delete(event._id)
-    }
+    await Promise.all(events.map((event) => ctx.db.delete(event._id)))
 
     return { traceId: args.traceId, deleted: true, eventsDeleted: events.length }
   },
