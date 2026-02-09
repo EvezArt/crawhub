@@ -6,14 +6,8 @@
  */
 
 import { v } from 'convex/values'
-import type { Id } from './_generated/dataModel'
 import { mutation, query } from './_generated/server'
-import {
-  type PassoverStageType,
-  PassoverStage,
-  createTrace,
-  validatePassoverEvent,
-} from './lib/physicalPassover'
+import { createTrace, validatePassoverEvent } from './lib/physicalPassover'
 
 /**
  * Create a new Physical Passover trace
@@ -259,10 +253,7 @@ export const getPassoverStats = query({
     const timeRangeMs = args.timeRangeMs ?? 24 * 60 * 60 * 1000 // Default: last 24 hours
     const cutoffTime = Date.now() - timeRangeMs
 
-    const traces = await ctx.db
-      .query('physicalPassoverTraces')
-      .withIndex('by_start_time')
-      .collect()
+    const traces = await ctx.db.query('physicalPassoverTraces').withIndex('by_start_time').collect()
 
     // Filter to time range
     const recentTraces = traces.filter((t) => t.startTime >= cutoffTime)

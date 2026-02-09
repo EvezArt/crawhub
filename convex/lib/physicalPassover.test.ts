@@ -4,13 +4,12 @@
 
 import { describe, expect, it } from 'vitest'
 import {
-  type PassoverStageType,
-  PassoverStage,
   computeRecipeId,
   computeTensorHash,
-  validatePassoverEvent,
   createTrace,
   isStageEvent,
+  PassoverStage,
+  validatePassoverEvent,
 } from './physicalPassover'
 
 describe('Physical Passover Domain', () => {

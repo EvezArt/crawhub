@@ -344,10 +344,7 @@ export function computeRecipeId(recipe: {
  * Compute a canonical hash for tensor data
  * This enables exact replayability and cache validation
  */
-export function computeTensorHash(
-  tensorData: ArrayBuffer | number[],
-  shape: number[],
-): string {
+export function computeTensorHash(tensorData: ArrayBuffer | number[], shape: number[]): string {
   // In production, compute SHA256 over the tensor data + shape
   // For now, return a placeholder that includes shape info
   const shapeStr = shape.join('x')
@@ -411,10 +408,7 @@ export function validatePassoverEvent(event: unknown): {
     )
   }
 
-  if (
-    evt.stage === PassoverStage.TOKEN_GENERATION &&
-    typeof evt.generatedTokenCount !== 'number'
-  ) {
+  if (evt.stage === PassoverStage.TOKEN_GENERATION && typeof evt.generatedTokenCount !== 'number') {
     errors.push('TOKEN_GENERATION stage requires generatedTokenCount')
   }
 
@@ -461,10 +455,7 @@ export function createTrace(params: {
 export function isStageEvent<T extends PassoverStageType>(
   event: unknown,
   stage: T,
-): event is Extract<
-  ReturnType<typeof PhysicalPassoverEventSchema>,
-  { stage: T }
-> {
+): event is Extract<ReturnType<typeof PhysicalPassoverEventSchema>, { stage: T }> {
   return (
     typeof event === 'object' &&
     event !== null &&
