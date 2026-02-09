@@ -1,6 +1,6 @@
 import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu'
 import * as React from 'react'
-import { cn } from '../../lib/utils'
+import { mergeClassNames } from '../../lib/utils'
 
 const DropdownMenu = DropdownMenuPrimitive.Root
 const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger
@@ -17,7 +17,7 @@ const DropdownMenuContent = React.forwardRef<
     <DropdownMenuPrimitive.Content
       ref={ref}
       sideOffset={sideOffset}
-      className={cn(
+      className={mergeClassNames(
         'z-50 min-w-[180px] rounded-xl border border-[color:var(--line)] bg-[color:var(--surface)] p-2 text-[color:var(--ink)] shadow-[var(--shadow)]',
         className,
       )}
@@ -33,7 +33,7 @@ const DropdownMenuItem = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DropdownMenuPrimitive.Item
     ref={ref}
-    className={cn(
+    className={mergeClassNames(
       'flex cursor-pointer select-none items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-[color:var(--ink)] outline-none transition-colors focus:bg-[color:rgba(255,107,74,0.12)] data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
       className,
     )}
@@ -48,7 +48,7 @@ const DropdownMenuSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DropdownMenuPrimitive.Separator
     ref={ref}
-    className={cn('my-1 h-px bg-[color:var(--line)]', className)}
+    className={mergeClassNames('my-1 h-px bg-[color:var(--line)]', className)}
     {...props}
   />
 ))

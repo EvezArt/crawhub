@@ -38,28 +38,28 @@ export function buildSkillSummaryBackfillPatch(args: {
   return patch
 }
 
-function deepEqual(a: unknown, b: unknown): boolean {
-  if (a === b) return true
-  if (!a || !b) return a === b
-  if (typeof a !== typeof b) return false
-  if (Array.isArray(a) || Array.isArray(b)) {
-    if (!Array.isArray(a) || !Array.isArray(b)) return false
-    if (a.length !== b.length) return false
-    for (let i = 0; i < a.length; i++) {
-      if (!deepEqual(a[i], b[i])) return false
+function deepEqual(value1: unknown, value2: unknown): boolean {
+  if (value1 === value2) return true
+  if (!value1 || !value2) return value1 === value2
+  if (typeof value1 !== typeof value2) return false
+  if (Array.isArray(value1) || Array.isArray(value2)) {
+    if (!Array.isArray(value1) || !Array.isArray(value2)) return false
+    if (value1.length !== value2.length) return false
+    for (let i = 0; i < value1.length; i++) {
+      if (!deepEqual(value1[i], value2[i])) return false
     }
     return true
   }
-  if (typeof a === 'object' && typeof b === 'object') {
-    const aObj = a as Record<string, unknown>
-    const bObj = b as Record<string, unknown>
-    const aKeys = Object.keys(aObj).sort()
-    const bKeys = Object.keys(bObj).sort()
-    if (aKeys.length !== bKeys.length) return false
-    for (let i = 0; i < aKeys.length; i++) {
-      if (aKeys[i] !== bKeys[i]) return false
-      const key = aKeys[i] as string
-      if (!deepEqual(aObj[key], bObj[key])) return false
+  if (typeof value1 === 'object' && typeof value2 === 'object') {
+    const obj1 = value1 as Record<string, unknown>
+    const obj2 = value2 as Record<string, unknown>
+    const keys1 = Object.keys(obj1).sort()
+    const keys2 = Object.keys(obj2).sort()
+    if (keys1.length !== keys2.length) return false
+    for (let i = 0; i < keys1.length; i++) {
+      if (keys1[i] !== keys2[i]) return false
+      const key = keys1[i] as string
+      if (!deepEqual(obj1[key], obj2[key])) return false
     }
     return true
   }
