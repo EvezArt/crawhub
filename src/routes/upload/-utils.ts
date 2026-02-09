@@ -39,15 +39,15 @@ export function formatBytes(bytes: number) {
 
 export function formatPublishError(error: unknown) {
   if (error && typeof error === 'object' && 'data' in error) {
-    const data = (error as { data?: unknown }).data
-    if (typeof data === 'string' && data.trim()) return data.trim()
+    const errorDetails = (error as { data?: unknown }).data
+    if (typeof errorDetails === 'string' && errorDetails.trim()) return errorDetails.trim()
     if (
-      data &&
-      typeof data === 'object' &&
-      'message' in data &&
-      typeof (data as { message?: unknown }).message === 'string'
+      errorDetails &&
+      typeof errorDetails === 'object' &&
+      'message' in errorDetails &&
+      typeof (errorDetails as { message?: unknown }).message === 'string'
     ) {
-      const message = (data as { message?: string }).message?.trim()
+      const message = (errorDetails as { message?: string }).message?.trim()
       if (message) return message
     }
   }

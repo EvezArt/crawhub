@@ -125,13 +125,13 @@ export function SkillsIndex() {
     const handle = window.setTimeout(() => {
       void (async () => {
         try {
-          const data = (await searchSkills({
+          const searchResults = (await searchSkills({
             query: trimmedQuery,
             highlightedOnly,
             limit: searchLimit,
           })) as Array<SkillSearchEntry>
           if (requestId === searchRequest.current) {
-            setSearchResults(data)
+            setSearchResults(searchResults)
           }
         } finally {
           if (requestId === searchRequest.current) {

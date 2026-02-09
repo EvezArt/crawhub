@@ -21,8 +21,8 @@ function clampText(value: string, maxChars: number) {
 }
 
 function summarizeFileDiff(oldFiles: FileMeta[], nextFiles: FileMeta[]): FileDiffSummary {
-  const oldByPath = new Map(oldFiles.map((f) => [f.path, f] as const))
-  const nextByPath = new Map(nextFiles.map((f) => [f.path, f] as const))
+  const oldByPath = new Map(oldFiles.map((file) => [file.path, file] as const))
+  const nextByPath = new Map(nextFiles.map((file) => [file.path, file] as const))
 
   const added: string[] = []
   const removed: string[] = []

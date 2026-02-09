@@ -78,8 +78,8 @@ function ImportGitHub() {
     setSelected({})
     setIsBusy(true)
     try {
-      const result = await previewImport({ url: url.trim() })
-      const items = (result.candidates ?? []) as Candidate[]
+      const importPreview = await previewImport({ url: url.trim() })
+      const items = (importPreview.candidates ?? []) as Candidate[]
       setCandidates(items)
       if (items.length === 1) {
         const only = items[0]
@@ -87,8 +87,8 @@ function ImportGitHub() {
       } else {
         setStatus(`Found ${items.length} skills. Pick one.`)
       }
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Preview failed')
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Preview failed')
     } finally {
       setIsBusy(false)
     }
@@ -102,21 +102,21 @@ function ImportGitHub() {
     setSelectedCandidatePath(candidatePath)
     setIsBusy(true)
     try {
-      const result = (await previewCandidate({
+      const candidatePreview = (await previewCandidate({
         url: url.trim(),
         candidatePath,
       })) as CandidatePreview
-      setPreview(result)
-      setSlug(result.defaults.slug)
-      setDisplayName(result.defaults.displayName)
-      setVersion(result.defaults.version)
-      setTags((result.defaults.tags ?? ['latest']).join(','))
+      setPreview(candidatePreview)
+      setSlug(candidatePreview.defaults.slug)
+      setDisplayName(candidatePreview.defaults.displayName)
+      setVersion(candidatePreview.defaults.version)
+      setTags((candidatePreview.defaults.tags ?? ['latest']).join(','))
       const nextSelected: Record<string, boolean> = {}
-      for (const file of result.files) nextSelected[file.path] = file.defaultSelected
+      for (const file of candidatePreview.files) nextSelected[file.path] = file.defaultSelected
       setSelected(nextSelected)
       setStatus('Ready to import.')
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Preview failed')
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Preview failed')
     } finally {
       setIsBusy(false)
     }
@@ -155,7 +155,7 @@ function ImportGitHub() {
         .split(',')
         .map((tag) => tag.trim())
         .filter(Boolean)
-      const result = await importSkill({
+      const importedSkill = await importSkill({
         url: url.trim(),
         commit: preview.resolved.commit,
         candidatePath: preview.candidate.path,
@@ -165,12 +165,12 @@ function ImportGitHub() {
         version: version.trim(),
         tags: tagList,
       })
-      const nextSlug = result.slug
+      const nextSlug = importedSkill.slug
       setStatus('Imported.')
       const ownerParam = me?.handle ?? (me?._id ? String(me._id) : 'unknown')
       await navigate({ to: '/$owner/$slug', params: { owner: ownerParam, slug: nextSlug } })
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Import failed')
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Import failed')
       setStatus(null)
     } finally {
       setIsBusy(false)

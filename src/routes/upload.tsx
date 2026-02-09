@@ -296,7 +296,7 @@ export function Upload() {
 
     setStatus('Publishing…')
     try {
-      const result = await publishVersion({
+      const publishedVersion = await publishVersion({
         slug: trimmedSlug,
         displayName: trimmedName,
         version,
@@ -308,7 +308,7 @@ export function Upload() {
       setError(null)
       setHasAttempted(false)
       setChangelogSource('user')
-      if (result) {
+      if (publishedVersion) {
         const ownerParam = me?.handle ?? (me?._id ? String(me._id) : 'unknown')
         void navigate({
           to: isSoulMode ? '/souls/$slug' : '/$owner/$slug',

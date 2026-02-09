@@ -176,8 +176,8 @@ function InstalledSection(props: {
 }) {
   const clearTelemetry = useMutation(api.telemetry.clearMyTelemetry)
   const [showRaw, setShowRaw] = useState(false)
-  const data = props.data
-  if (data === undefined) {
+  const telemetryData = props.data
+  if (telemetryData === undefined) {
     return (
       <>
         <h2 className="section-title" style={{ fontSize: '1.3rem' }}>
@@ -190,7 +190,7 @@ function InstalledSection(props: {
     )
   }
 
-  if (data === null) {
+  if (telemetryData === null) {
     return (
       <>
         <h2 className="section-title" style={{ fontSize: '1.3rem' }}>
@@ -232,16 +232,16 @@ function InstalledSection(props: {
       {showRaw ? (
         <div className="card telemetry-json" style={{ marginBottom: 18 }}>
           <pre className="mono" style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
-            {JSON.stringify(data, null, 2)}
+            {JSON.stringify(telemetryData, null, 2)}
           </pre>
         </div>
       ) : null}
 
-      {data.roots.length === 0 ? (
+      {telemetryData.roots.length === 0 ? (
         <div className="card">No telemetry yet. Run `clawhub sync` from the CLI.</div>
       ) : (
         <div style={{ display: 'grid', gap: 16 }}>
-          {data.roots.map((root) => (
+          {telemetryData.roots.map((root) => (
             <div key={root.rootId} className="card telemetry-root">
               <div className="telemetry-root-header">
                 <div>

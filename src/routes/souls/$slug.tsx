@@ -4,12 +4,12 @@ import { buildSoulMeta, fetchSoulMeta } from '../../lib/og'
 
 export const Route = createFileRoute('/souls/$slug')({
   loader: async ({ params }) => {
-    const data = await fetchSoulMeta(params.slug)
+    const soulMetadata = await fetchSoulMeta(params.slug)
     return {
-      owner: data?.owner ?? null,
-      displayName: data?.displayName ?? null,
-      summary: data?.summary ?? null,
-      version: data?.version ?? null,
+      owner: soulMetadata?.owner ?? null,
+      displayName: soulMetadata?.displayName ?? null,
+      summary: soulMetadata?.summary ?? null,
+      version: soulMetadata?.version ?? null,
     }
   },
   head: ({ params, loaderData }) => {

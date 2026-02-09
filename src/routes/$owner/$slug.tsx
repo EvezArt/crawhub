@@ -4,12 +4,12 @@ import { buildSkillMeta, fetchSkillMeta } from '../../lib/og'
 
 export const Route = createFileRoute('/$owner/$slug')({
   loader: async ({ params }) => {
-    const data = await fetchSkillMeta(params.slug)
+    const skillMetadata = await fetchSkillMeta(params.slug)
     return {
-      owner: data?.owner ?? params.owner,
-      displayName: data?.displayName ?? null,
-      summary: data?.summary ?? null,
-      version: data?.version ?? null,
+      owner: skillMetadata?.owner ?? params.owner,
+      displayName: skillMetadata?.displayName ?? null,
+      summary: skillMetadata?.summary ?? null,
+      version: skillMetadata?.version ?? null,
     }
   },
   head: ({ params, loaderData }) => {
