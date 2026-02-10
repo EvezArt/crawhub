@@ -1,0 +1,76 @@
+# Daily Repository Report Workflow
+#
+# This workflow generates a daily report of all repositories for the EvezArt organization.
+# It collects repository metadata via the GitHub GraphQL API and produces JSON and CSV artifacts.
+#
+# REPORT_TOKEN Configuration:
+# To include private repositories in the report, you must configure a Personal Access Token (PAT)
+# with 'repo' scope as a repository secret named REPORT_TOKEN.
+#
+# Setup via GitHub CLI:
+#   echo "YOUR_PERSONAL_ACCESS_TOKEN" | gh secret set REPORT_TOKEN --repo EvezArt/crawhub
+#
+# Setup via GitHub UI:
+#   1. Navigate to: Settings > Secrets and variables > Actions
+#   2. Click "New repository secret"
+#   3. Name: REPORT_TOKEN
+#   4. Value: Your Personal Access Token with 'repo' scope
+#   5. Click "Add secret"
+#
+# To create a Personal Access Token:
+#   1. Go to GitHub Settings > Developer settings > Personal access tokens > Tokens (classic)
+#   2. Click "Generate new token (classic)"
+#   3. Give it a descriptive name (e.g., "crawhub-repo-report")
+#   4. Select the 'repo' scope (Full control of private repositories)
+#   5. Click "Generate token"
+#   6. Copy the token immediately (you won't be able to see it again)
+#
+# Note: Without REPORT_TOKEN, only public repositories will be included in the report.
+
+name: Daily repository report
+
+on:
+  schedule:
+    # Run daily at midnight UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  repo-report:
+    runs-on: ubuntu-latest
+    
+    env:
+      OWNER: EvezArt
+      REPORT_TOKEN: ${{ secrets.REPORT_TOKEN }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      
+      - name: Install dependencies
+        run: pip install requests
+      
+      - name: Generate repository report
+        run: python .github/scripts/generate_repo_report.py
+      
+      - name: Upload JSON report
+        uses: actions/upload-artifact@v4
+        with:
+          name: repo-report.json
+          path: repo-report.json
+          if-no-files-found: error
+      
+      - name: Upload CSV report
+        uses: actions/upload-artifact@v4
+        with:
+          name: repo-report.csv
+          path: repo-report.csv
+          if-no-files-found: error
