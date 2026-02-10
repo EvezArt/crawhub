@@ -93,18 +93,17 @@ export const listPublicPage = query({
       .order('desc')
       .paginate({ cursor: args.cursor ?? null, numItems: limit })
 
-    const items: Array<{
-      soul: NonNullable<ReturnType<typeof toPublicSoul>>
-      latestVersion: Doc<'soulVersions'> | null
-    }> = []
+    const itemsData = await Promise.all(
+      page.map(async (soul) => {
+        if (soul.softDeletedAt) return null
+        const latestVersion = soul.latestVersionId ? await ctx.db.get(soul.latestVersionId) : null
+        const publicSoul = toPublicSoul(soul)
+        if (!publicSoul) return null
+        return { soul: publicSoul, latestVersion }
+      }),
+    )
 
-    for (const soul of page) {
-      if (soul.softDeletedAt) continue
-      const latestVersion = soul.latestVersionId ? await ctx.db.get(soul.latestVersionId) : null
-      const publicSoul = toPublicSoul(soul)
-      if (!publicSoul) continue
-      items.push({ soul: publicSoul, latestVersion })
-    }
+    const items = itemsData.filter((item): item is NonNullable<typeof item> => item !== null)
 
     return { items, nextCursor: isDone ? null : continueCursor }
   },
@@ -345,14 +344,17 @@ export const updateTags = mutation({
         .query('soulEmbeddings')
         .withIndex('by_soul', (q) => q.eq('soulId', soul._id))
         .collect()
-      for (const embedding of embeddings) {
-        const isLatest = embedding.versionId === latestEntry.versionId
-        await ctx.db.patch(embedding._id, {
-          isLatest,
-          visibility: visibilityFor(isLatest, embedding.isApproved),
-          updatedAt: Date.now(),
-        })
-      }
+      const now = Date.now()
+      await Promise.all(
+        embeddings.map((embedding) => {
+          const isLatest = embedding.versionId === latestEntry.versionId
+          return ctx.db.patch(embedding._id, {
+            isLatest,
+            visibility: visibilityFor(isLatest, embedding.isApproved),
+            updatedAt: now,
+          })
+        }),
+      )
     }
   },
 })

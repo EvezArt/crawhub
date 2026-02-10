@@ -33,7 +33,9 @@ export const searchInternal = internalQuery({
     assertAdmin(actor)
 
     const limit = Math.min(Math.max(args.limit ?? 20, 1), 200)
-    const users = await ctx.db.query('users').order('desc').collect()
+    // Limit the initial query to avoid loading all users into memory
+    const maxFetch = Math.min(limit * 10, 1000)
+    const users = await ctx.db.query('users').order('desc').take(maxFetch)
     const result = buildUserSearchResults(users, args.query)
     const items = result.items.slice(0, limit).map((user) => ({
       userId: user._id,
@@ -130,7 +132,9 @@ export const list = query({
     assertAdmin(user)
     const limit = Math.min(Math.max(args.limit ?? 50, 1), 200)
     const query = args.search?.trim().toLowerCase()
-    const users = await ctx.db.query('users').order('desc').collect()
+    // Limit the initial query to avoid loading all users into memory
+    const maxFetch = Math.min(limit * 10, 1000)
+    const users = await ctx.db.query('users').order('desc').take(maxFetch)
     const result = buildUserSearchResults(users, query)
     return { items: result.items.slice(0, limit), total: result.total }
   },
