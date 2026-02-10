@@ -191,9 +191,9 @@ def get_repositories(owner: str, token: Optional[str]) -> list[dict[str, Any]]:
                         "open_issues_count": node.get("issues", {}).get("totalCount"),
                         "watchers_count": node.get("watchers", {}).get("totalCount"),
                         "topics": [
-                            t.get("topic", {}).get("name")
+                            t.get("topic", {}).get("name", "")
                             for t in node.get("repositoryTopics", {}).get("nodes", [])
-                            if t.get("topic")
+                            if t.get("topic") and t.get("topic", {}).get("name")
                         ],
                         "license": node.get("licenseInfo", {}).get("name", "") if node.get("licenseInfo") else "",
                         "primary_language": node.get("primaryLanguage", {}).get("name", "") if node.get("primaryLanguage") else "",
@@ -263,8 +263,8 @@ def write_csv_report(repositories: list[dict[str, Any]], filename: str) -> None:
         
         # Write data rows
         for repo in repositories:
-            # Join topics with semicolon
-            topics_str = ";".join(repo.get("topics", []))
+            # Join topics with semicolon, filtering out None values
+            topics_str = ";".join(filter(None, repo.get("topics", [])))
             
             writer.writerow([
                 repo.get("name", ""),
