@@ -29,12 +29,16 @@ def query_github_graphql(query: str, variables: Dict[str, Any], token: str) -> D
 
 
 def get_repository_data(owner: str, token: str) -> Dict[str, Any]:
-    """Fetch repository data using GitHub GraphQL API."""
+    """Fetch repository data using GitHub GraphQL API with pagination."""
     query = """
-    query($owner: String!) {
+    query($owner: String!, $after: String) {
       organization(login: $owner) {
-        repositories(first: 100, orderBy: {field: UPDATED_AT, direction: DESC}) {
+        repositories(first: 100, after: $after, orderBy: {field: UPDATED_AT, direction: DESC}) {
           totalCount
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
           nodes {
             name
             description
@@ -63,13 +67,28 @@ def get_repository_data(owner: str, token: str) -> Dict[str, Any]:
     }
     """
     
-    variables = {"owner": owner}
-    result = query_github_graphql(query, variables, token)
+    all_repositories = []
+    has_next_page = True
+    after_cursor = None
     
-    if "errors" in result:
-        raise Exception(f"GraphQL errors: {result['errors']}")
+    while has_next_page:
+        variables = {"owner": owner, "after": after_cursor}
+        result = query_github_graphql(query, variables, token)
+        
+        if "errors" in result:
+            raise Exception(f"GraphQL errors: {result['errors']}")
+        
+        data = result.get("data", {})
+        organization = data.get("organization", {})
+        repositories = organization.get("repositories", {})
+        
+        all_repositories.extend(repositories.get("nodes", []))
+        
+        page_info = repositories.get("pageInfo", {})
+        has_next_page = page_info.get("hasNextPage", False)
+        after_cursor = page_info.get("endCursor")
     
-    return result.get("data", {})
+    return {"organization": {"repositories": {"nodes": all_repositories}}}
 
 
 def format_repository_data(data: Dict[str, Any]) -> List[Dict[str, Any]]:
