@@ -433,13 +433,14 @@ async function loadHighlightedSkills(ctx: QueryCtx, limit: number) {
     .order('desc')
     .take(MAX_LIST_TAKE)
 
-  const skills: Doc<'skills'>[] = []
-  for (const badge of entries) {
-    const skill = await ctx.db.get(badge.skillId)
-    if (!skill || skill.softDeletedAt) continue
-    skills.push(skill)
-    if (skills.length >= limit) break
-  }
+  // Batch load all skills to avoid N+1 queries
+  const skillIds = entries.map((badge) => badge.skillId)
+  const allSkills = await Promise.all(skillIds.map((id) => ctx.db.get(id)))
+
+  // Filter out null/soft-deleted skills and limit to requested amount
+  const skills = allSkills
+    .filter((skill): skill is Doc<'skills'> => skill !== null && !skill.softDeletedAt)
+    .slice(0, limit)
 
   return skills
 }
@@ -652,7 +653,9 @@ export const getSkillBySlugInternal = internalQuery({
 export const getQuickStatsInternal = internalQuery({
   args: {},
   handler: async (ctx) => {
-    const allSkills = await ctx.db.query('skills').collect()
+    // Use .take() with a high limit instead of .collect() for stats queries
+    const maxFetch = 10000
+    const allSkills = await ctx.db.query('skills').take(maxFetch)
     const active = allSkills.filter((s) => !s.softDeletedAt)
 
     const byStatus: Record<string, number> = {}
@@ -677,7 +680,9 @@ export const getQuickStatsInternal = internalQuery({
 export const getStatsInternal = internalQuery({
   args: {},
   handler: async (ctx) => {
-    const allSkills = await ctx.db.query('skills').collect()
+    // Use .take() with a high limit instead of .collect() for stats queries
+    const maxFetch = 10000
+    const allSkills = await ctx.db.query('skills').take(maxFetch)
     const active = allSkills.filter((s) => !s.softDeletedAt)
 
     const byStatus: Record<string, number> = {}
@@ -697,10 +702,11 @@ export const getStatsInternal = internalQuery({
       }
     }
 
+    // Limit badge queries as well
     const highlightedBadges = await ctx.db
       .query('skillBadges')
       .withIndex('by_kind_at', (q) => q.eq('kind', 'highlighted'))
-      .collect()
+      .take(1000)
 
     const vtStats = {
       clean: 0,

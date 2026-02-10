@@ -26,6 +26,12 @@ function SkillsHome() {
     }) as PublicSkill[]) ?? []
   const latest = (useQuery(api.skills.list, { limit: 12 }) as PublicSkill[]) ?? []
 
+  // Memoize badge computations to avoid recalculating on every render
+  const highlightedWithBadges = useMemo(
+    () => highlighted.map((skill) => ({ skill, badges: getSkillBadges(skill) })),
+    [highlighted]
+  )
+
   return (
     <main>
       <section className="hero">
@@ -70,14 +76,14 @@ function SkillsHome() {
         <h2 className="section-title">Highlighted skills</h2>
         <p className="section-subtitle">Curated signal — highlighted for quick trust.</p>
         <div className="grid">
-          {highlighted.length === 0 ? (
+          {highlightedWithBadges.length === 0 ? (
             <div className="card">No highlighted skills yet.</div>
           ) : (
-            highlighted.map((skill) => (
+            highlightedWithBadges.map(({ skill, badges }) => (
               <SkillCard
                 key={skill._id}
                 skill={skill}
-                badge={getSkillBadges(skill)}
+                badge={badges}
                 summaryFallback="A fresh skill bundle."
                 meta={
                   <div className="stat">

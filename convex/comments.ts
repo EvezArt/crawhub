@@ -14,11 +14,18 @@ export const listBySkill = query({
       .order('desc')
       .take(limit)
 
+    // Filter out soft-deleted comments first
+    const activeComments = comments.filter((c) => !c.softDeletedAt)
+
+    // Batch load all unique users to avoid N+1 queries
+    const uniqueUserIds = [...new Set(activeComments.map((c) => c.userId))]
+    const users = await Promise.all(uniqueUserIds.map((id) => ctx.db.get(id)))
+    const userMap = new Map(users.map((u) => [u?._id, toPublicUser(u)]))
+
+    // Build results using the cached user map
     const results: Array<{ comment: Doc<'comments'>; user: PublicUser | null }> = []
-    for (const comment of comments) {
-      if (comment.softDeletedAt) continue
-      const user = toPublicUser(await ctx.db.get(comment.userId))
-      results.push({ comment, user })
+    for (const comment of activeComments) {
+      results.push({ comment, user: userMap.get(comment.userId) ?? null })
     }
     return results
   },
