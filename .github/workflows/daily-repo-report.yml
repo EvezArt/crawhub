@@ -301,7 +301,7 @@ jobs:
               
               # Fetch all repositories
               try:
-                  repos = fetch_all_repositories(OWNER, token if token else None)
+                  repos = fetch_all_repositories(OWNER, token or None)
               except Exception as e:
                   print(f"Fatal error: {e}")
                   sys.exit(1)
