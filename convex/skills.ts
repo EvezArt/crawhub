@@ -1623,7 +1623,7 @@ export const getSkillsWithNullModerationStatusInternal = internalQuery({
     return skills.map((skill) => ({
       skillId: skill._id,
       slug: skill.slug,
-      moderationReason: s.moderationReason,
+      moderationReason: skill.moderationReason,
     }))
   },
 })
