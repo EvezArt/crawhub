@@ -1,0 +1,101 @@
+name: Daily Repository Report
+
+on:
+  schedule:
+    # Run daily at 00:00 UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Allow manual triggers
+
+jobs:
+  generate-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for accurate statistics
+
+      - name: Generate Repository Statistics
+        id: stats
+        run: |
+          echo "## Daily Repository Report - $(date '+%Y-%m-%d')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Get commit statistics for the last 24 hours
+          COMMITS_TODAY=$(git log --since="24 hours ago" --oneline | wc -l)
+          echo "### Commits (Last 24 Hours)" >> $GITHUB_STEP_SUMMARY
+          echo "Total commits: $COMMITS_TODAY" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Get recent commit activity
+          if [ $COMMITS_TODAY -gt 0 ]; then
+            echo "#### Recent Commits" >> $GITHUB_STEP_SUMMARY
+            git log --since="24 hours ago" --pretty=format:"- %h %s (%an)" | head -10 >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Get top contributors
+          echo "### Top Contributors (Last 7 Days)" >> $GITHUB_STEP_SUMMARY
+          git log --since="7 days ago" --pretty=format:"%an" | sort | uniq -c | sort -rn | head -5 | awk '{print "- " $2 " (" $1 " commits)"}' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Get file change statistics
+          echo "### File Changes (Last 24 Hours)" >> $GITHUB_STEP_SUMMARY
+          if [ $COMMITS_TODAY -gt 0 ]; then
+            FILES_CHANGED=$(git diff --stat HEAD@{24.hours.ago} HEAD 2>/dev/null | tail -1 || echo "No changes")
+            echo "$FILES_CHANGED" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No file changes in the last 24 hours" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Get branch information
+          echo "### Branch Information" >> $GITHUB_STEP_SUMMARY
+          TOTAL_BRANCHES=$(git branch -r | grep -v '\->' | wc -l)
+          echo "Total remote branches: $TOTAL_BRANCHES" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Get repository size
+          echo "### Repository Size" >> $GITHUB_STEP_SUMMARY
+          REPO_SIZE=$(du -sh . | awk '{print $1}')
+          echo "Total size: $REPO_SIZE" >> $GITHUB_STEP_SUMMARY
+
+      - name: Fetch Issues and PRs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Issues" >> $GITHUB_STEP_SUMMARY
+          
+          # Get open issues count
+          OPEN_ISSUES=$(gh issue list --state open --json number --jq 'length' 2>/dev/null || echo "0")
+          echo "Open issues: $OPEN_ISSUES" >> $GITHUB_STEP_SUMMARY
+          
+          # List recent issues
+          if [ "$OPEN_ISSUES" != "0" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "#### Recently Updated Issues" >> $GITHUB_STEP_SUMMARY
+            gh issue list --state open --limit 5 --json number,title,updatedAt --jq '.[] | "- #\(.number): \(.title)"' >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "Unable to fetch issues"
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Pull Requests" >> $GITHUB_STEP_SUMMARY
+          
+          # Get open PRs count
+          OPEN_PRS=$(gh pr list --state open --json number --jq 'length' 2>/dev/null || echo "0")
+          echo "Open pull requests: $OPEN_PRS" >> $GITHUB_STEP_SUMMARY
+          
+          # List recent PRs
+          if [ "$OPEN_PRS" != "0" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "#### Open Pull Requests" >> $GITHUB_STEP_SUMMARY
+            gh pr list --state open --limit 5 --json number,title,author --jq '.[] | "- #\(.number): \(.title) (@\(.author.login))"' >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "Unable to fetch pull requests"
+          fi
+
+      - name: Report Summary
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "*Report generated at $(date -u '+%Y-%m-%d %H:%M:%S UTC')*" >> $GITHUB_STEP_SUMMARY
