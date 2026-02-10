@@ -1,0 +1,80 @@
+# Daily Repository Report Workflow
+#
+# This workflow generates a daily report of all repositories owned by EvezArt.
+# It queries the GitHub GraphQL API to collect repository metadata and generates
+# both JSON and CSV reports that are uploaded as artifacts.
+#
+# REPORT_TOKEN Configuration:
+# ---------------------------
+# The REPORT_TOKEN should be a GitHub Personal Access Token (PAT) with 'repo' scope
+# to access both public and private repositories. If not set, the workflow will only
+# access public repositories using unauthenticated requests.
+#
+# To set the REPORT_TOKEN secret:
+#
+# Using GitHub CLI:
+#   echo "YOUR_PERSONAL_ACCESS_TOKEN" | gh secret set REPORT_TOKEN --repo EvezArt/crawhub
+#
+# Using GitHub UI:
+#   1. Go to Settings > Secrets and variables > Actions
+#   2. Click "New repository secret"
+#   3. Name: REPORT_TOKEN
+#   4. Value: Your Personal Access Token
+#   5. Click "Add secret"
+#
+# To create a Personal Access Token:
+#   1. Go to GitHub Settings > Developer settings > Personal access tokens > Tokens (classic)
+#   2. Click "Generate new token (classic)"
+#   3. Give it a descriptive note (e.g., "Repository Report Workflow")
+#   4. Select the 'repo' scope (Full control of private repositories)
+#   5. Click "Generate token"
+#   6. Copy the token and add it as a secret using one of the methods above
+
+name: Daily repository report
+
+on:
+  schedule:
+    # Run daily at midnight UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    # Allow manual triggering
+
+permissions:
+  contents: read
+
+jobs:
+  repo-report:
+    runs-on: ubuntu-latest
+    
+    env:
+      OWNER: EvezArt
+      REPORT_TOKEN: ${{ secrets.REPORT_TOKEN }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      
+      - name: Install dependencies
+        run: pip install requests
+      
+      - name: Generate repository report
+        run: python .github/scripts/generate_repo_report.py
+      
+      - name: Upload JSON report
+        uses: actions/upload-artifact@v4
+        with:
+          name: repo-report.json
+          path: repo-report.json
+          if-no-files-found: error
+      
+      - name: Upload CSV report
+        uses: actions/upload-artifact@v4
+        with:
+          name: repo-report.csv
+          path: repo-report.csv
+          if-no-files-found: error
