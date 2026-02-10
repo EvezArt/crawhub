@@ -1,0 +1,67 @@
+# Daily Repository Report Workflow
+#
+# This workflow generates a daily report of all repositories for the owner EvezArt.
+# It supports private repositories when the REPORT_TOKEN secret is configured.
+#
+# REPORT_TOKEN Configuration:
+# ---------------------------
+# To include private repositories in the report, set the REPORT_TOKEN secret to a
+# GitHub Personal Access Token (PAT) with 'repo' scope.
+#
+# CLI Configuration:
+#   echo "YOUR_PERSONAL_ACCESS_TOKEN" | gh secret set REPORT_TOKEN --repo EvezArt/crawhub
+#
+# UI Configuration:
+#   1. Go to Settings > Secrets and variables > Actions
+#   2. Click "New repository secret"
+#   3. Name: REPORT_TOKEN
+#   4. Value: <your PAT with repo scope>
+#   5. Click "Add secret"
+#
+# If REPORT_TOKEN is not set, the workflow will only access public repositories.
+
+name: Daily repository report
+
+on:
+  schedule:
+    # Run daily at midnight UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  repo-report:
+    runs-on: ubuntu-latest
+    
+    env:
+      OWNER: EvezArt
+      REPORT_TOKEN: ${{ secrets.REPORT_TOKEN }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      
+      - name: Install dependencies
+        run: pip install requests
+      
+      - name: Generate repository report
+        run: python .github/scripts/generate_repo_report.py
+      
+      - name: Upload JSON report
+        uses: actions/upload-artifact@v4
+        with:
+          name: repo-report.json
+          path: repo-report.json
+      
+      - name: Upload CSV report
+        uses: actions/upload-artifact@v4
+        with:
+          name: repo-report.csv
+          path: repo-report.csv
