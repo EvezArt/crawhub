@@ -232,7 +232,7 @@ jobs:
                       "name": repo.get("name", ""),
                       "full_name": f"{repo.get('owner', {}).get('login', '')}/{repo.get('name', '')}",
                       "owner_login": repo.get("owner", {}).get("login", ""),
-                      "isPrivate": repo.get("isPrivate", False),
+                      "is_private": repo.get("isPrivate", False),
                       "url": repo.get("url", ""),
                       "description": repo.get("description", "") or "",
                       "default_branch": default_branch,
@@ -267,7 +267,7 @@ jobs:
                   "name",
                   "full_name",
                   "owner_login",
-                  "isPrivate",
+                  "is_private",
                   "url",
                   "description",
                   "default_branch",
@@ -317,7 +317,7 @@ jobs:
               print(f"Total repositories: {len(formatted_repos)}")
               
               # Print summary statistics
-              private_count = sum(1 for r in formatted_repos if r["isPrivate"])
+              private_count = sum(1 for r in formatted_repos if r["is_private"])
               public_count = len(formatted_repos) - private_count
               print(f"  Public: {public_count}")
               print(f"  Private: {private_count}")
