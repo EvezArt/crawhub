@@ -47,6 +47,13 @@ def get_headers() -> Dict[str, str]:
     return headers
 
 
+def parse_retry_after_header(retry_after, default_backoff: float) -> float:
+    """Parse Retry-After header and return wait time in seconds."""
+    if isinstance(retry_after, (int, str)) and str(retry_after).isdigit():
+        return int(retry_after)
+    return default_backoff
+
+
 def should_retry(status_code: int, response_data: Optional[Dict[str, Any]]) -> bool:
     """Determine if request should be retried based on status code and response."""
     # Retry on transient HTTP errors
@@ -111,7 +118,7 @@ def execute_graphql_query(query: str, variables: Dict[str, Any]) -> Dict[str, An
             if "errors" in data:
                 if should_retry(response.status_code, data):
                     retry_after = response.headers.get("Retry-After", backoff)
-                    wait_time = int(retry_after) if isinstance(retry_after, (int, str)) and str(retry_after).isdigit() else backoff
+                    wait_time = parse_retry_after_header(retry_after, backoff)
                     print(f"GraphQL rate limit or transient error, retrying in {wait_time}s... (attempt {attempt + 1}/{MAX_RETRIES})", file=sys.stderr)
                     time.sleep(wait_time)
                     backoff = min(backoff * 2, MAX_BACKOFF)
@@ -252,7 +259,11 @@ def transform_repository_data(repo: Dict[str, Any]) -> Dict[str, Any]:
     # Extract topics
     topics = []
     if repo.get("repositoryTopics") and repo["repositoryTopics"].get("nodes"):
-        topics = [node["topic"]["name"] for node in repo["repositoryTopics"]["nodes"] if node.get("topic")]
+        topics = [
+            node["topic"]["name"]
+            for node in repo["repositoryTopics"]["nodes"]
+            if node.get("topic") and node["topic"].get("name")
+        ]
     
     # Extract default branch
     default_branch = ""

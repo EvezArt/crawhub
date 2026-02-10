@@ -66,13 +66,13 @@ jobs:
       - name: Upload JSON report
         uses: actions/upload-artifact@v4
         with:
-          name: repo-report.json
+          name: repo-report-json
           path: repo-report.json
           retention-days: 90
       
       - name: Upload CSV report
         uses: actions/upload-artifact@v4
         with:
-          name: repo-report.csv
+          name: repo-report-csv
           path: repo-report.csv
           retention-days: 90
