@@ -15,6 +15,7 @@ import {
   sanitizePath,
 } from './skills'
 import { generateSoulChangelogForPublish } from './soulChangelog'
+import { fetchText } from './utils'
 import { validateSlugAndDisplayName, validateVersion } from './validation'
 
 const MAX_TOTAL_BYTES = 50 * 1024 * 1024
@@ -208,15 +209,6 @@ function mergeSourceIntoMetadata(metadata: unknown, source: PublishVersionArgs['
   if (!metadata) return { source: sourceValue }
   if (typeof metadata !== 'object' || Array.isArray(metadata)) return { source: sourceValue }
   return { ...(metadata as Record<string, unknown>), source: sourceValue }
-}
-
-export async function fetchText(
-  ctx: { storage: { get: (id: Id<'_storage'>) => Promise<Blob | null> } },
-  storageId: Id<'_storage'>,
-) {
-  const blob = await ctx.storage.get(storageId)
-  if (!blob) throw new Error('File missing in storage')
-  return blob.text()
 }
 
 function formatEmbeddingError(error: unknown) {
