@@ -38,14 +38,13 @@ jobs:
           
           # Get top contributors
           echo "### Top Contributors (Last 7 Days)" >> $GITHUB_STEP_SUMMARY
-          git log --since="7 days ago" --pretty=format:"%an" | sort | uniq -c | sort -rn | head -5 | awk '{print "- " $2 " (" $1 " commits)"}' >> $GITHUB_STEP_SUMMARY
+          git log --since="7 days ago" --pretty=format:"%an" | sort | uniq -c | sort -rn | head -5 | awk '{commits=$1; $1=""; sub(/^ /, ""); print "- " $0 " (" commits " commits)"}' >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
           # Get file change statistics
           echo "### File Changes (Last 24 Hours)" >> $GITHUB_STEP_SUMMARY
           if [ $COMMITS_TODAY -gt 0 ]; then
-            FILES_CHANGED=$(git diff --stat HEAD@{24.hours.ago} HEAD 2>/dev/null | tail -1 || echo "No changes")
-            echo "$FILES_CHANGED" >> $GITHUB_STEP_SUMMARY
+            git log --since="24 hours ago" --stat --format="" | tail -1 >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "No changes" >> $GITHUB_STEP_SUMMARY
           else
             echo "No file changes in the last 24 hours" >> $GITHUB_STEP_SUMMARY
           fi
