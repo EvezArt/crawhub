@@ -115,9 +115,7 @@ async function hardDeleteSkillStep(
         .query('skillVersions')
         .withIndex('by_skill', (q) => q.eq('skillId', skill._id))
         .take(HARD_DELETE_VERSION_BATCH_SIZE)
-      for (const version of versions) {
-        await ctx.db.delete(version._id)
-      }
+      await Promise.all(versions.map((version) => ctx.db.delete(version._id)))
       if (versions.length === HARD_DELETE_VERSION_BATCH_SIZE) {
         await scheduleHardDelete(ctx, skill._id, actorUserId, 'versions')
         return
@@ -130,9 +128,7 @@ async function hardDeleteSkillStep(
         .query('skillVersionFingerprints')
         .withIndex('by_skill_fingerprint', (q) => q.eq('skillId', skill._id))
         .take(HARD_DELETE_BATCH_SIZE)
-      for (const fingerprint of fingerprints) {
-        await ctx.db.delete(fingerprint._id)
-      }
+      await Promise.all(fingerprints.map((fingerprint) => ctx.db.delete(fingerprint._id)))
       if (fingerprints.length === HARD_DELETE_BATCH_SIZE) {
         await scheduleHardDelete(ctx, skill._id, actorUserId, 'fingerprints')
         return
@@ -145,9 +141,7 @@ async function hardDeleteSkillStep(
         .query('skillEmbeddings')
         .withIndex('by_skill', (q) => q.eq('skillId', skill._id))
         .take(HARD_DELETE_BATCH_SIZE)
-      for (const embedding of embeddings) {
-        await ctx.db.delete(embedding._id)
-      }
+      await Promise.all(embeddings.map((embedding) => ctx.db.delete(embedding._id)))
       if (embeddings.length === HARD_DELETE_BATCH_SIZE) {
         await scheduleHardDelete(ctx, skill._id, actorUserId, 'embeddings')
         return
@@ -160,9 +154,7 @@ async function hardDeleteSkillStep(
         .query('comments')
         .withIndex('by_skill', (q) => q.eq('skillId', skill._id))
         .take(HARD_DELETE_BATCH_SIZE)
-      for (const comment of comments) {
-        await ctx.db.delete(comment._id)
-      }
+      await Promise.all(comments.map((comment) => ctx.db.delete(comment._id)))
       if (comments.length === HARD_DELETE_BATCH_SIZE) {
         await scheduleHardDelete(ctx, skill._id, actorUserId, 'comments')
         return
@@ -175,9 +167,7 @@ async function hardDeleteSkillStep(
         .query('skillReports')
         .withIndex('by_skill', (q) => q.eq('skillId', skill._id))
         .take(HARD_DELETE_BATCH_SIZE)
-      for (const report of reports) {
-        await ctx.db.delete(report._id)
-      }
+      await Promise.all(reports.map((report) => ctx.db.delete(report._id)))
       if (reports.length === HARD_DELETE_BATCH_SIZE) {
         await scheduleHardDelete(ctx, skill._id, actorUserId, 'reports')
         return
@@ -190,9 +180,7 @@ async function hardDeleteSkillStep(
         .query('stars')
         .withIndex('by_skill', (q) => q.eq('skillId', skill._id))
         .take(HARD_DELETE_BATCH_SIZE)
-      for (const star of stars) {
-        await ctx.db.delete(star._id)
-      }
+      await Promise.all(stars.map((star) => ctx.db.delete(star._id)))
       if (stars.length === HARD_DELETE_BATCH_SIZE) {
         await scheduleHardDelete(ctx, skill._id, actorUserId, 'stars')
         return
@@ -205,9 +193,7 @@ async function hardDeleteSkillStep(
         .query('skillBadges')
         .withIndex('by_skill', (q) => q.eq('skillId', skill._id))
         .take(HARD_DELETE_BATCH_SIZE)
-      for (const badge of badges) {
-        await ctx.db.delete(badge._id)
-      }
+      await Promise.all(badges.map((badge) => ctx.db.delete(badge._id)))
       if (badges.length === HARD_DELETE_BATCH_SIZE) {
         await scheduleHardDelete(ctx, skill._id, actorUserId, 'badges')
         return
@@ -220,9 +206,7 @@ async function hardDeleteSkillStep(
         .query('skillDailyStats')
         .withIndex('by_skill_day', (q) => q.eq('skillId', skill._id))
         .take(HARD_DELETE_BATCH_SIZE)
-      for (const stat of dailyStats) {
-        await ctx.db.delete(stat._id)
-      }
+      await Promise.all(dailyStats.map((stat) => ctx.db.delete(stat._id)))
       if (dailyStats.length === HARD_DELETE_BATCH_SIZE) {
         await scheduleHardDelete(ctx, skill._id, actorUserId, 'dailyStats')
         return
@@ -235,9 +219,7 @@ async function hardDeleteSkillStep(
         .query('skillStatEvents')
         .withIndex('by_skill', (q) => q.eq('skillId', skill._id))
         .take(HARD_DELETE_BATCH_SIZE)
-      for (const statEvent of statEvents) {
-        await ctx.db.delete(statEvent._id)
-      }
+      await Promise.all(statEvents.map((statEvent) => ctx.db.delete(statEvent._id)))
       if (statEvents.length === HARD_DELETE_BATCH_SIZE) {
         await scheduleHardDelete(ctx, skill._id, actorUserId, 'statEvents')
         return
@@ -250,9 +232,7 @@ async function hardDeleteSkillStep(
         .query('userSkillInstalls')
         .withIndex('by_skill', (q) => q.eq('skillId', skill._id))
         .take(HARD_DELETE_BATCH_SIZE)
-      for (const install of installs) {
-        await ctx.db.delete(install._id)
-      }
+      await Promise.all(installs.map((install) => ctx.db.delete(install._id)))
       if (installs.length === HARD_DELETE_BATCH_SIZE) {
         await scheduleHardDelete(ctx, skill._id, actorUserId, 'installs')
         return
@@ -265,9 +245,7 @@ async function hardDeleteSkillStep(
         .query('userSkillRootInstalls')
         .withIndex('by_skill', (q) => q.eq('skillId', skill._id))
         .take(HARD_DELETE_BATCH_SIZE)
-      for (const rootInstall of rootInstalls) {
-        await ctx.db.delete(rootInstall._id)
-      }
+      await Promise.all(rootInstalls.map((rootInstall) => ctx.db.delete(rootInstall._id)))
       if (rootInstalls.length === HARD_DELETE_BATCH_SIZE) {
         await scheduleHardDelete(ctx, skill._id, actorUserId, 'rootInstalls')
         return
