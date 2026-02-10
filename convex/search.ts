@@ -226,20 +226,20 @@ export const searchSouls: ReturnType<typeof action> = action({
 export const hydrateSoulResults = internalQuery({
   args: { embeddingIds: v.array(v.id('soulEmbeddings')) },
   handler: async (ctx, args): Promise<HydratedSoulEntry[]> => {
-    const entries: HydratedSoulEntry[] = []
+    const entries = await Promise.all(
+      args.embeddingIds.map(async (embeddingId) => {
+        const embedding = await ctx.db.get(embeddingId)
+        if (!embedding) return null
+        const soul = await ctx.db.get(embedding.soulId)
+        if (soul?.softDeletedAt) return null
+        const version = await ctx.db.get(embedding.versionId)
+        const publicSoul = toPublicSoul(soul)
+        if (!publicSoul) return null
+        return { embeddingId, soul: publicSoul, version }
+      }),
+    )
 
-    for (const embeddingId of args.embeddingIds) {
-      const embedding = await ctx.db.get(embeddingId)
-      if (!embedding) continue
-      const soul = await ctx.db.get(embedding.soulId)
-      if (soul?.softDeletedAt) continue
-      const version = await ctx.db.get(embedding.versionId)
-      const publicSoul = toPublicSoul(soul)
-      if (!publicSoul) continue
-      entries.push({ embeddingId, soul: publicSoul, version })
-    }
-
-    return entries
+    return entries.filter((entry): entry is HydratedSoulEntry => entry !== null)
   },
 })
 

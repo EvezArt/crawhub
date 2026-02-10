@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import type { ReactNode } from 'react'
+import { memo, type ReactNode, useMemo } from 'react'
 import type { PublicSkill } from '../lib/publicUser'
 
 type SkillCardProps = {
@@ -11,10 +11,17 @@ type SkillCardProps = {
   href?: string
 }
 
-export function SkillCard({ skill, badge, chip, summaryFallback, meta, href }: SkillCardProps) {
+export const SkillCard = memo(function SkillCard({
+  skill,
+  badge,
+  chip,
+  summaryFallback,
+  meta,
+  href,
+}: SkillCardProps) {
   const owner = encodeURIComponent(String(skill.ownerUserId))
   const link = href ?? `/${owner}/${skill.slug}`
-  const badges = Array.isArray(badge) ? badge : badge ? [badge] : []
+  const badges = useMemo(() => (Array.isArray(badge) ? badge : badge ? [badge] : []), [badge])
 
   return (
     <Link to={link} className="card skill-card">
@@ -33,4 +40,4 @@ export function SkillCard({ skill, badge, chip, summaryFallback, meta, href }: S
       <div className="skill-card-footer">{meta}</div>
     </Link>
   )
-}
+})

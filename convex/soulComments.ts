@@ -14,13 +14,17 @@ export const listBySoul = query({
       .order('desc')
       .take(limit)
 
-    const results: Array<{ comment: Doc<'soulComments'>; user: PublicUser | null }> = []
-    for (const comment of comments) {
-      if (comment.softDeletedAt) continue
-      const user = toPublicUser(await ctx.db.get(comment.userId))
-      results.push({ comment, user })
-    }
-    return results
+    const results = await Promise.all(
+      comments.map(async (comment) => {
+        if (comment.softDeletedAt) return null
+        const user = toPublicUser(await ctx.db.get(comment.userId))
+        return { comment, user }
+      }),
+    )
+    return results.filter(
+      (result): result is { comment: Doc<'soulComments'>; user: PublicUser | null } =>
+        result !== null,
+    )
   },
 })
 

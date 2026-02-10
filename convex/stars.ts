@@ -55,14 +55,13 @@ export const listByUser = query({
       .withIndex('by_user', (q) => q.eq('userId', args.userId))
       .order('desc')
       .take(limit)
-    const skills: NonNullable<ReturnType<typeof toPublicSkill>>[] = []
-    for (const star of stars) {
-      const skill = await ctx.db.get(star.skillId)
-      const publicSkill = toPublicSkill(skill)
-      if (!publicSkill) continue
-      skills.push(publicSkill)
-    }
-    return skills
+    const skillsData = await Promise.all(
+      stars.map(async (star) => {
+        const skill = await ctx.db.get(star.skillId)
+        return toPublicSkill(skill)
+      }),
+    )
+    return skillsData.filter((skill): skill is NonNullable<typeof skill> => skill !== null)
   },
 })
 

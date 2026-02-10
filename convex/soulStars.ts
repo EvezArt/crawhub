@@ -59,13 +59,12 @@ export const listByUser = query({
       .order('desc')
       .take(limit)
 
-    const souls: NonNullable<ReturnType<typeof toPublicSoul>>[] = []
-    for (const star of stars) {
-      const soul = await ctx.db.get(star.soulId)
-      const publicSoul = toPublicSoul(soul)
-      if (!publicSoul) continue
-      souls.push(publicSoul)
-    }
-    return souls
+    const soulsData = await Promise.all(
+      stars.map(async (star) => {
+        const soul = await ctx.db.get(star.soulId)
+        return toPublicSoul(soul)
+      }),
+    )
+    return soulsData.filter((soul): soul is NonNullable<typeof soul> => soul !== null)
   },
 })
