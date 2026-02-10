@@ -193,7 +193,8 @@ export const importGitHubSkill = action({
     }
 
     // Optimize: process all files in parallel (sha256 + storage.store)
-    const fileProcessingPromises = selected.sort().map(async (path) => {
+    // Note: 'selected' is already sorted from the validation loop above
+    const fileProcessingPromises = selected.map(async (path) => {
       const bytes = byPath.get(path)
       if (!bytes) return null
 
