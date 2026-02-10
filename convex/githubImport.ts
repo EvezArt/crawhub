@@ -168,7 +168,7 @@ export const importGitHubSkill = action({
     }
 
     let totalBytes = 0
-    const storedFiles: Array<{
+    let storedFiles: Array<{
       path: string
       size: number
       storageId: Id<'_storage'>
@@ -176,6 +176,7 @@ export const importGitHubSkill = action({
       contentType?: string
     }> = []
 
+    // First, validate all selected paths and check total size
     for (const path of selected.sort()) {
       if (candidateRoot && !path.startsWith(candidateRoot)) {
         throw new ConvexError('Selected file is outside the chosen skill folder')
@@ -189,18 +190,32 @@ export const importGitHubSkill = action({
       const relPath = candidateRoot ? path.slice(candidateRoot.length) : path
       const sanitized = sanitizePath(relPath)
       if (!sanitized) throw new ConvexError('Invalid file paths')
+    }
+
+    // Optimize: process all files in parallel (sha256 + storage.store)
+    const fileProcessingPromises = selected.sort().map(async (path) => {
+      const bytes = byPath.get(path)
+      if (!bytes) return null
+
+      const relPath = candidateRoot ? path.slice(candidateRoot.length) : path
+      const sanitized = sanitizePath(relPath)
+      if (!sanitized) return null
 
       const sha256 = await sha256Hex(bytes)
       const safeBytes = new Uint8Array(bytes)
       const storageId = await ctx.storage.store(new Blob([safeBytes], { type: 'text/plain' }))
-      storedFiles.push({
+
+      return {
         path: sanitized,
         size: bytes.byteLength,
         storageId,
         sha256,
-        contentType: 'text/plain',
-      })
-    }
+        contentType: 'text/plain' as const,
+      }
+    })
+
+    const processedFiles = await Promise.all(fileProcessingPromises)
+    storedFiles = processedFiles.filter((file): file is NonNullable<typeof file> => file !== null)
 
     if (storedFiles.length === 0) throw new ConvexError('No files selected')
 
