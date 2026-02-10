@@ -1,0 +1,46 @@
+name: Daily repository report
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  repo-report:
+    runs-on: ubuntu-latest
+    
+    env:
+      OWNER: EvezArt
+      REPORT_TOKEN: ${{ secrets.REPORT_TOKEN }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      
+      - name: Install dependencies
+        run: pip install requests
+      
+      - name: Generate repository report
+        run: python .github/scripts/generate_repo_report.py
+      
+      - name: Upload JSON report
+        uses: actions/upload-artifact@v4
+        with:
+          name: repo-report-json
+          path: repo_report.json
+          retention-days: 30
+      
+      - name: Upload CSV report
+        uses: actions/upload-artifact@v4
+        with:
+          name: repo-report-csv
+          path: repo_report.csv
+          retention-days: 30
