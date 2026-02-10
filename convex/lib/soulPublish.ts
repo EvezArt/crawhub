@@ -15,6 +15,7 @@ import {
   sanitizePath,
 } from './skills'
 import { generateSoulChangelogForPublish } from './soulChangelog'
+import { validateSlugAndDisplayName, validateVersion } from './validation'
 
 const MAX_TOTAL_BYTES = 50 * 1024 * 1024
 
@@ -84,13 +85,9 @@ export async function publishSoulVersionForUser(
   const version = args.version.trim()
   const slug = args.slug.trim().toLowerCase()
   const displayName = args.displayName.trim()
-  if (!slug || !displayName) throw new ConvexError('Slug and display name required')
-  if (!/^[a-z0-9][a-z0-9-]*$/.test(slug)) {
-    throw new ConvexError('Slug must be lowercase and url-safe')
-  }
-  if (!semver.valid(version)) {
-    throw new ConvexError('Version must be valid semver')
-  }
+
+  validateSlugAndDisplayName(slug, displayName)
+  validateVersion(version)
 
   await requireGitHubAccountAge(ctx, userId)
 
