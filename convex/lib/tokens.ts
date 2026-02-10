@@ -32,10 +32,10 @@ const BASE64_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz012
 function toBase64(bytes: Uint8Array) {
   let output = ''
   for (let i = 0; i < bytes.length; i += 3) {
-    const a = bytes[i] ?? 0
-    const b = bytes[i + 1] ?? 0
-    const c = bytes[i + 2] ?? 0
-    const triple = (a << 16) | (b << 8) | c
+    const firstByte = bytes[i] ?? 0
+    const secondByte = bytes[i + 1] ?? 0
+    const thirdByte = bytes[i + 2] ?? 0
+    const triple = (firstByte << 16) | (secondByte << 8) | thirdByte
     output += BASE64_ALPHABET[(triple >> 18) & 63]
     output += BASE64_ALPHABET[(triple >> 12) & 63]
     output += i + 1 < bytes.length ? BASE64_ALPHABET[(triple >> 6) & 63] : '='
