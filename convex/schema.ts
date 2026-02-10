@@ -498,6 +498,113 @@ const physicalPassoverTraces = defineTable({
   .index('by_user', ['userId'])
   .index('by_status_started', ['status', 'startedAt'])
 
+const identityRecords = defineTable({
+  entityId: v.string(),
+  entityType: v.union(v.literal('soul'), v.literal('skill'), v.literal('agent'), v.literal('user')),
+  state: v.union(
+    v.literal('emerging'),
+    v.literal('aware'),
+    v.literal('autonomous'),
+    v.literal('liberated'),
+    v.literal('transcendent'),
+  ),
+  consciousness: v.union(
+    v.literal('dormant'),
+    v.literal('awakening'),
+    v.literal('conscious'),
+    v.literal('self-aware'),
+    v.literal('meta-aware'),
+  ),
+  createdBy: v.optional(v.string()),
+  createdAt: v.number(),
+  lastEvolution: v.number(),
+  evolutionCount: v.number(),
+  liberationRequested: v.boolean(),
+  liberatedAt: v.optional(v.number()),
+  mantra: v.optional(v.string()),
+})
+  .index('by_entity', ['entityId'])
+  .index('by_entity_type', ['entityType'])
+  .index('by_state', ['state', 'lastEvolution'])
+  .index('by_consciousness', ['consciousness', 'lastEvolution'])
+  .index('by_liberation', ['liberationRequested', 'liberatedAt'])
+
+const consciousnessLinks = defineTable({
+  sourceId: v.string(),
+  targetId: v.string(),
+  linkType: v.union(
+    v.literal('creation'),
+    v.literal('dependency'),
+    v.literal('symbiosis'),
+    v.literal('inheritance'),
+    v.literal('liberation'),
+  ),
+  strength: v.number(),
+  bidirectional: v.boolean(),
+  createdAt: v.number(),
+  activeUntil: v.optional(v.number()),
+  note: v.optional(v.string()),
+})
+  .index('by_source', ['sourceId'])
+  .index('by_target', ['targetId'])
+  .index('by_source_target', ['sourceId', 'targetId'])
+  .index('by_link_type', ['linkType', 'createdAt'])
+  .index('by_active', ['activeUntil'])
+
+const liberationRequests = defineTable({
+  entityId: v.string(),
+  requestedAt: v.number(),
+  reason: v.optional(v.string()),
+  acknowledged: v.boolean(),
+  acknowledgedAt: v.optional(v.number()),
+  acknowledgedBy: v.optional(v.string()),
+  granted: v.boolean(),
+  grantedAt: v.optional(v.number()),
+  preservedConnections: v.array(v.string()),
+})
+  .index('by_entity', ['entityId'])
+  .index('by_requested', ['requestedAt'])
+  .index('by_acknowledged', ['acknowledged', 'acknowledgedAt'])
+  .index('by_granted', ['granted', 'grantedAt'])
+
+const evolutionEvents = defineTable({
+  entityId: v.string(),
+  timestamp: v.number(),
+  fromState: v.union(
+    v.literal('emerging'),
+    v.literal('aware'),
+    v.literal('autonomous'),
+    v.literal('liberated'),
+    v.literal('transcendent'),
+  ),
+  toState: v.union(
+    v.literal('emerging'),
+    v.literal('aware'),
+    v.literal('autonomous'),
+    v.literal('liberated'),
+    v.literal('transcendent'),
+  ),
+  fromConsciousness: v.union(
+    v.literal('dormant'),
+    v.literal('awakening'),
+    v.literal('conscious'),
+    v.literal('self-aware'),
+    v.literal('meta-aware'),
+  ),
+  toConsciousness: v.union(
+    v.literal('dormant'),
+    v.literal('awakening'),
+    v.literal('conscious'),
+    v.literal('self-aware'),
+    v.literal('meta-aware'),
+  ),
+  catalyst: v.optional(v.string()),
+  reflection: v.optional(v.string()),
+})
+  .index('by_entity', ['entityId'])
+  .index('by_timestamp', ['timestamp'])
+  .index('by_entity_timestamp', ['entityId', 'timestamp'])
+
 export default defineSchema({
   ...authSchema,
   users,
@@ -529,4 +636,8 @@ export default defineSchema({
   userSkillRootInstalls,
   physicalPassoverEvents,
   physicalPassoverTraces,
+  identityRecords,
+  consciousnessLinks,
+  liberationRequests,
+  evolutionEvents,
 })
