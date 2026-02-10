@@ -6,7 +6,7 @@ Uses GitHub API to fetch repository metrics and activity.
 import os
 import sys
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
 
@@ -25,7 +25,7 @@ def github_api_request(url, token):
     headers = {
         'Authorization': f'Bearer {token}',
         'Accept': 'application/vnd.github.v3+json',
-        'User-Agent': 'ClawHub-Daily-Report'
+        'User-Agent': 'crawhub-daily-report'
     }
     req = Request(url, headers=headers)
     try:
@@ -47,25 +47,25 @@ def get_repo_info(owner, repo, token):
 
 def get_recent_commits(owner, repo, token, days=1):
     """Fetch commits from the last N days."""
-    since = (datetime.utcnow() - timedelta(days=days)).isoformat() + 'Z'
+    since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
     url = f'https://api.github.com/repos/{owner}/{repo}/commits?since={since}&per_page=100'
     return github_api_request(url, token)
 
 
 def get_recent_issues(owner, repo, token, days=1):
     """Fetch issues updated in the last N days."""
-    since = (datetime.utcnow() - timedelta(days=days)).isoformat() + 'Z'
+    since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
     url = f'https://api.github.com/repos/{owner}/{repo}/issues?since={since}&per_page=100&state=all'
     return github_api_request(url, token)
 
 
 def get_recent_prs(owner, repo, token, days=1):
     """Fetch pull requests updated in the last N days."""
-    since = (datetime.utcnow() - timedelta(days=days)).isoformat() + 'Z'
+    since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
     url = f'https://api.github.com/repos/{owner}/{repo}/pulls?state=all&sort=updated&direction=desc&per_page=100'
     prs = github_api_request(url, token)
     # Filter by update date
-    cutoff = datetime.utcnow() - timedelta(days=days)
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
     return [pr for pr in prs if datetime.fromisoformat(pr['updated_at'].replace('Z', '+00:00')).replace(tzinfo=None) > cutoff]
 
 
@@ -75,7 +75,7 @@ def generate_report(owner, repo):
     
     print("# Daily Repository Report")
     print(f"**Repository:** {owner}/{repo}")
-    print(f"**Date:** {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC")
+    print(f"**Date:** {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC")
     print()
     
     # Get repository information
