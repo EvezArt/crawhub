@@ -71,15 +71,15 @@ export async function cmdLogin(
 }
 
 export async function cmdLogout(opts: GlobalOpts) {
-  const cfg = await readGlobalConfig()
-  const registry = cfg?.registry || (await getRegistry(opts, { cache: true }))
+  const config = await readGlobalConfig()
+  const registry = config?.registry || (await getRegistry(opts, { cache: true }))
   await writeGlobalConfig({ registry, token: undefined })
   console.log('OK. Logged out.')
 }
 
 export async function cmdWhoami(opts: GlobalOpts) {
-  const cfg = await readGlobalConfig()
-  const token = cfg?.token
+  const config = await readGlobalConfig()
+  const token = config?.token
   if (!token) fail('Not logged in. Run: clawhub login')
   const registry = await getRegistry(opts, { cache: true })
 

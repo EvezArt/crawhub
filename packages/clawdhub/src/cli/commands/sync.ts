@@ -32,8 +32,8 @@ export async function cmdSync(opts: GlobalOpts, options: SyncOptions, inputAllow
   const allowPrompt = isInteractive() && inputAllowed !== false
   intro('ClawHub sync')
 
-  const cfg = await readGlobalConfig()
-  const token = cfg?.token
+  const config = await readGlobalConfig()
+  const token = config?.token
   if (!token) fail('Not logged in. Run: clawhub login')
 
   const registry = await getRegistryWithAuth(opts, token)

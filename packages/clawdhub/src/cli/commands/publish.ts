@@ -27,8 +27,8 @@ export async function cmdPublish(
   const folderStat = await stat(folder).catch(() => null)
   if (!folderStat || !folderStat.isDirectory()) fail('Path must be a folder')
 
-  const cfg = await readGlobalConfig()
-  const token = cfg?.token
+  const config = await readGlobalConfig()
+  const token = config?.token
   if (!token) fail('Not logged in. Run: clawhub login')
   const registry = await getRegistry(opts, { cache: true })
 

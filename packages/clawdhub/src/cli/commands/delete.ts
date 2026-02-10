@@ -41,8 +41,8 @@ const unhideLabels: SkillActionLabels = {
 }
 
 async function requireToken() {
-  const cfg = await readGlobalConfig()
-  const token = cfg?.token
+  const config = await readGlobalConfig()
+  const token = config?.token
   if (!token) fail('Not logged in. Run: clawhub login')
   return token
 }

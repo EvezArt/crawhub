@@ -14,8 +14,8 @@ export async function resolveRegistry(opts: GlobalOpts) {
   const discovered = discovery?.apiBase?.trim()
   if (discovered) return discovered
 
-  const cfg = await readGlobalConfig()
-  const cached = cfg?.registry?.trim()
+  const config = await readGlobalConfig()
+  const cached = config?.registry?.trim()
   if (cached && !isLegacyRegistry(cached)) return cached
   return DEFAULT_REGISTRY
 }
@@ -24,13 +24,13 @@ export async function getRegistry(opts: GlobalOpts, params?: { cache?: boolean }
   const cache = params?.cache !== false
   const registry = await resolveRegistry(opts)
   if (!cache) return registry
-  const cfg = await readGlobalConfig()
-  const cached = cfg?.registry?.trim()
+  const config = await readGlobalConfig()
+  const cached = config?.registry?.trim()
   const shouldUpdate =
     !cached ||
     isLegacyRegistry(cached) ||
     (cached === DEFAULT_REGISTRY && registry !== DEFAULT_REGISTRY)
-  if (shouldUpdate) await writeGlobalConfig({ registry, token: cfg?.token })
+  if (shouldUpdate) await writeGlobalConfig({ registry, token: config?.token })
   return registry
 }
 
