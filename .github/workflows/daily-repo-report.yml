@@ -1,0 +1,39 @@
+name: Daily Repository Report
+
+on:
+  schedule:
+    # Run daily at 9:00 AM UTC
+    - cron: '0 9 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+permissions:
+  contents: read
+
+jobs:
+  generate-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Generate repository report
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          python .github/scripts/generate_repo_report.py
+
+      - name: Upload report as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-repo-report-${{ github.run_number }}
+          path: |
+            .
+          retention-days: 30
