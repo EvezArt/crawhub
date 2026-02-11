@@ -32,6 +32,7 @@ import {
   usersPostRouterV1Http,
   whoamiV1Http,
 } from './httpApiV1'
+import { txPlanHttp, txExecuteHttp, txStatusHttp } from './txApi'
 
 const http = httpRouter()
 
@@ -143,6 +144,25 @@ http.route({
   pathPrefix: `${ApiRoutes.souls}/`,
   method: 'DELETE',
   handler: soulsDeleteRouterV1Http,
+})
+
+// Transaction API endpoints
+http.route({
+  path: '/api/v1/tx/plan',
+  method: 'POST',
+  handler: txPlanHttp,
+})
+
+http.route({
+  path: '/api/v1/tx/execute',
+  method: 'POST',
+  handler: txExecuteHttp,
+})
+
+http.route({
+  pathPrefix: '/api/v1/tx/',
+  method: 'GET',
+  handler: txStatusHttp,
 })
 
 // TODO: remove legacy /api routes after deprecation window.
