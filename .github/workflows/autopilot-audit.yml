@@ -39,9 +39,9 @@ jobs:
         id: drift
         continue-on-error: true
         run: |
-          python .github/scripts/detect_drift.py
+          python .github/scripts/detect_drift.py || true
           
-          # Capture outputs
+          # Always capture outputs from report file
           if [ -f drift-report.json ]; then
             drift_detected=$(jq -r '.drift_detected' drift-report.json)
             merkle_root=$(jq -r '.state.merkle_root' drift-report.json)
@@ -52,6 +52,10 @@ jobs:
             # Also set as environment variables for later steps
             echo "DRIFT_DETECTED=$drift_detected" >> $GITHUB_ENV
             echo "MERKLE_ROOT=$merkle_root" >> $GITHUB_ENV
+          else
+            # If no report, assume no drift
+            echo "drift_detected=false" >> $GITHUB_OUTPUT
+            echo "merkle_root=" >> $GITHUB_OUTPUT
           fi
 
       - name: Upload drift report

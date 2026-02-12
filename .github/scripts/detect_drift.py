@@ -146,6 +146,9 @@ def detect_policy_violations(repo_path: Path, allowlist: List[str]) -> List[Dict
         for i, line in enumerate(lines, 1):
             # Detect run: commands (with or without list marker)
             stripped = line.lstrip()
+            # Skip comments
+            if stripped.startswith("#"):
+                continue
             # Match "run:" or "- run:" (YAML list item)
             if stripped.startswith("run:") or stripped.startswith("- run:"):
                 violation_lines.append(i)

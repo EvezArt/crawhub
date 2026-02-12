@@ -222,6 +222,28 @@ jobs:
             # Should not detect with allowlist
             violations2 = detect_policy_violations(repo_path, ['allowed.yml'])
             self.assertEqual(len(violations2), 0)
+    
+    def test_ignore_comments(self):
+        """Should not detect commented run: commands."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_path = Path(tmpdir)
+            workflows_dir = repo_path / ".github" / "workflows"
+            workflows_dir.mkdir(parents=True)
+            
+            # Create workflow with commented run: command
+            workflow_file = workflows_dir / "commented.yml"
+            workflow_file.write_text("""
+name: Commented
+on: push
+jobs:
+  test:
+    steps:
+      # - run: echo "commented out"
+      - uses: actions/checkout@v4
+""")
+            
+            violations = detect_policy_violations(repo_path, [])
+            self.assertEqual(len(violations), 0)
 
 
 class TestDetectMissingPolicies(unittest.TestCase):
