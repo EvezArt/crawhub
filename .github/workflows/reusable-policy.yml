@@ -37,7 +37,7 @@ jobs:
 
           # Find all workflow files
           WORKFLOWS=$(
-            find .github/workflows -name "*.yml" -o -name "*.yaml" \
+            find .github/workflows \( -name "*.yml" -o -name "*.yaml" \) \
             2>/dev/null || echo ""
           )
 
@@ -46,7 +46,8 @@ jobs:
             exit 0
           fi
 
-          for file in $WORKFLOWS; do
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
             filename=$(basename "$file")
 
             # Check if file is in allowlist
@@ -66,8 +67,8 @@ jobs:
             echo "📄 Checking $filename..."
 
             # Check for 'run:' steps (indicates thick caller)
-            if grep -E "^[[:space:]]*-[[:space:]]*run:" "$file" || \
-               grep -E "^[[:space:]]+run:" "$file"; then
+            if grep -E "^[[:space:]]*(-[[:space:]]*)?run:" "$file" \
+              > /dev/null 2>&1; then
               echo "  ❌ Found local 'run:' steps"
               VIOLATIONS+=("$filename: Contains local 'run:' steps")
             fi
@@ -90,7 +91,7 @@ jobs:
             fi
 
             echo ""
-          done
+          done <<< "$WORKFLOWS"
 
           # Report results
           if [ ${#VIOLATIONS[@]} -gt 0 ]; then
