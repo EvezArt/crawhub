@@ -60,7 +60,8 @@ jobs:
             fi
             
             # Check for bespoke run: commands (thin-caller violation)
-            if grep -q "^\s*run:" "$workflow"; then
+            # Match both "run:" and "- run:" (YAML list items), skip comments
+            if grep -v "^\s*#" "$workflow" | grep -q "^\s*-\?\s*run:" ; then
               echo "❌ VIOLATION: $filename contains bespoke 'run:' steps"
               echo "   Thin-caller policy requires delegation to reusable workflows"
               violations=$((violations + 1))

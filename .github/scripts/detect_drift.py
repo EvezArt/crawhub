@@ -211,7 +211,7 @@ def generate_drift_report(
     all_violations = violations + missing
     
     report = {
-        "repository": str(repo_path.name),
+        "repository": os.getenv("GITHUB_REPOSITORY", str(repo_path.name)),
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "state": state,
         "violations": all_violations,
