@@ -1,0 +1,22 @@
+name: Policy Enforcement
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  policy-check:
+    name: Enforce Governance Policies
+    uses: ./.github/workflows/reusable-policy.yml
+    with:
+      allowlist: 'ci.yml,policy.yml,reusable-policy.yml,autopilot-audit.yml,daily-repo-report.yml,secret-detection.yml'

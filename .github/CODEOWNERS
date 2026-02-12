@@ -1,0 +1,27 @@
+# CODEOWNERS - Governance Nervous System
+#
+# This file locks the governance layer, preventing unauthorized changes
+# to the autonomous control plane. All changes to these files require
+# approval from the governance team.
+#
+# The governance system is the "nervous system" of the repository,
+# self-enforcing rules and maintaining epistemic continuity.
+
+# Governance workflows and scripts
+/.github/workflows/policy.yml              @EvezArt
+/.github/workflows/reusable-policy.yml     @EvezArt
+/.github/workflows/autopilot-audit.yml     @EvezArt
+/.github/workflows/THIN-CALLER-POLICY.md   @EvezArt
+/.github/scripts/detect_drift.py           @EvezArt
+/.github/scripts/rollout.sh                @EvezArt
+/.github/scripts/enforce_branch_protection.sh @EvezArt
+
+# Governance manifest and ownership
+/.github/repo-manifest.yml                 @EvezArt
+/.github/CODEOWNERS                        @EvezArt
+
+# Security-critical workflows
+/.github/workflows/secret-detection.yml    @EvezArt
+
+# Note: Changes to these files require explicit approval from @EvezArt
+# to maintain the integrity of the autonomous governance system.

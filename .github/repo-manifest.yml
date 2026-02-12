@@ -1,0 +1,72 @@
+# Repository Manifest
+# 
+# This manifest defines the workload repositories governed by this control plane.
+# The autopilot auditor uses this manifest to enforce governance policies across
+# all listed repositories.
+#
+# Format:
+#   - owner/repo: Repository full name
+#   - enforceThinCaller: Whether to enforce thin-caller policy
+#   - requiredWorkflows: List of required workflow files
+#   - allowlist: Optional custom allowlist (inherits default if not specified)
+
+version: 1.0
+controlPlane:
+  repository: EvezArt/crawhub
+  description: Autonomous governance control plane for CI/CD policies
+
+# Workload repositories under governance
+workloadRepositories:
+  - repository: EvezArt/crawhub
+    enforceThinCaller: true
+    requiredWorkflows:
+      - policy.yml
+      - reusable-policy.yml
+    allowlist:
+      - ci.yml
+      - policy.yml
+      - reusable-policy.yml
+      - autopilot-audit.yml
+      - daily-repo-report.yml
+      - secret-detection.yml
+    
+  # Add additional workload repositories here
+  # Example:
+  # - repository: EvezArt/example-workload
+  #   enforceThinCaller: true
+  #   requiredWorkflows:
+  #     - policy.yml
+  #   allowlist:
+  #     - ci.yml
+  #     - policy.yml
+
+# Governance policies
+policies:
+  thinCaller:
+    enabled: true
+    description: Enforce thin-caller CI pattern across all workflows
+    
+  explicitPermissions:
+    enabled: true
+    description: Require explicit permissions blocks in all workflows
+    
+  driftDetection:
+    enabled: true
+    schedule: '0 0 * * *'  # Daily at midnight UTC
+    autoCorrect: true
+    
+  merkleRootVerification:
+    enabled: true
+    description: Compute and verify Merkle roots for workflow state
+
+# Drift correction settings
+driftCorrection:
+  enabled: true
+  autoCreatePR: true
+  autoMergeSafe: false  # Require manual approval for corrections
+  
+# Epistemic continuity settings
+epistemicContinuity:
+  enabled: true
+  preserveMerkleRoots: true
+  immutableAuditLog: true
