@@ -40,13 +40,16 @@ def check_workflow_compliance(repo_path: str, policies: list[str]) -> list[dict[
             content = workflow_file.read_text()
             
             # Check for inline run steps in various formats
-            # Matches: "- run:", "- run: |", "- run: >", "run:"
             lines = content.split("\n")
             in_step = False
             for i, line in enumerate(lines, 1):
                 stripped = line.strip()
                 
-                # Check for step starting with "- run:"
+                # Detect start of a new step
+                if stripped.startswith("- name:") or stripped.startswith("- uses:") or stripped.startswith("- run:"):
+                    in_step = True
+                
+                # Check for "- run:" (list item with run)
                 if stripped.startswith("- run:"):
                     violations.append({
                         "type": "thin-caller-violation",
@@ -55,8 +58,8 @@ def check_workflow_compliance(repo_path: str, policies: list[str]) -> list[dict[
                         "message": f"Workflow contains inline 'run:' step (violates thin-caller policy)",
                         "severity": "error",
                     })
-                # Check for "run:" as a step property (not in uses: steps)
-                elif stripped.startswith("run:") and in_step:
+                # Check for "run:" as a step property (indented, part of current step)
+                elif stripped.startswith("run:") and in_step and not stripped.startswith("runs-on:"):
                     violations.append({
                         "type": "thin-caller-violation",
                         "file": str(workflow_file.relative_to(repo_path)),
@@ -65,10 +68,9 @@ def check_workflow_compliance(repo_path: str, policies: list[str]) -> list[dict[
                         "severity": "error",
                     })
                 
-                # Track when we're in a step block
-                if stripped.startswith("- name:") or stripped.startswith("- uses:"):
-                    in_step = True
-                elif stripped.startswith("-") and not stripped.startswith("- run:"):
+                # A line starting with '-' that's not part of the current step starts a new item
+                # Reset in_step only if we see a new list item that's not a step
+                if stripped.startswith("-") and not stripped.startswith("- name:") and not stripped.startswith("- uses:") and not stripped.startswith("- run:") and not stripped.startswith("- if:") and not stripped.startswith("- id:"):
                     in_step = False
     
     return violations

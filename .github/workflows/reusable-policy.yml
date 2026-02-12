@@ -48,9 +48,13 @@ jobs:
               continue
             fi
             
-            # Check for inline run steps (excluding setup actions)
-            if grep -E '^\s+- run:' "$workflow" > /dev/null 2>&1; then
+            # Check for inline run steps
+            # Matches both "- run:" and "  run:" (indented run property)
+            if grep -E '^\s+(-\s+)?run:' "$workflow" > /dev/null 2>&1; then
               echo "✗ $FILENAME contains inline 'run:' steps (violates thin-caller policy)"
+              grep -n -E '^\s+(-\s+)?run:' "$workflow" | while read -r line; do
+                echo "    Line: $line"
+              done
               VIOLATIONS=$((VIOLATIONS + 1))
             else
               echo "✓ $FILENAME complies with thin-caller policy"

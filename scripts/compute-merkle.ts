@@ -173,6 +173,9 @@ export function saveCheckpoint(checkpoint: MerkleCheckpoint, filePath: string): 
 
 /**
  * CLI entry point
+ *
+ * Note: This uses `import.meta.main` which is a Bun-specific feature.
+ * When running with Node.js, use: node -e "require('./compute-merkle').main()"
  */
 export async function main() {
   const args = process.argv.slice(2)
