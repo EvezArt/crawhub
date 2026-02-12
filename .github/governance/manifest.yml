@@ -1,0 +1,62 @@
+# Repository Governance Manifest
+# This file defines the repositories under autonomous governance control
+
+version: "1.0"
+control_plane:
+  repository: EvezArt/crawhub
+  description: "Central control plane for autonomous governance"
+  merkle_root: null  # Computed from event stream checkpoints
+  last_audit: null
+  
+governed_repositories:
+  - name: EvezArt/crawhub
+    description: "ClawHub - Skills registry and control plane"
+    governance_level: "full"
+    policies:
+      - thin-caller-ci
+      - branch-protection
+      - secret-detection
+      - drift-detection
+    branch_protection:
+      branch: main
+      required_reviews: 1
+      require_code_owner_reviews: false
+      dismiss_stale_reviews: true
+      require_status_checks: true
+      required_checks:
+        - "ci"
+        - "enforce-policies"
+    drift_detection:
+      enabled: true
+      schedule: "0 0 * * *"  # Daily at midnight UTC
+      auto_fix: true
+      auto_pr: true
+    
+  # Add additional governed repositories here
+  # Example:
+  # - name: EvezArt/another-repo
+  #   description: "Another repository under governance"
+  #   governance_level: "monitoring"  # full, partial, monitoring
+  #   policies:
+  #     - thin-caller-ci
+  #   branch_protection:
+  #     branch: main
+  #     required_reviews: 1
+
+rollout:
+  # Rollout strategy for policy deployment
+  strategy: "phased"  # phased, immediate, manual
+  phases:
+    - repositories: ["EvezArt/crawhub"]
+      wait_days: 0
+    # - repositories: ["EvezArt/repo2", "EvezArt/repo3"]
+    #   wait_days: 7
+  
+event_stream:
+  # Event stream configuration for audit trail
+  enabled: true
+  checkpoint_interval_hours: 24
+  retention_days: 90
+  merkle_tree:
+    algorithm: "sha256"
+    branch_factor: 2
