@@ -58,29 +58,16 @@ def setup_branch_protection(repo_name: str, config: dict[str, Any], dry_run: boo
         return {"repository": repo_name, "branch": branch, "status": "dry_run", "success": True}
     
     try:
-        # Use gh CLI to set branch protection
-        token = get_github_token()
+        # Use gh CLI with JSON input for proper type handling
+        settings_json = json.dumps(settings)
         
-        # Convert settings to gh CLI format
-        cmd = [
+        result = subprocess.run([
             "gh", "api",
             f"repos/{repo_name}/branches/{branch}/protection",
             "-X", "PUT",
             "-H", "Accept: application/vnd.github+json",
-            "-f", f"required_status_checks[strict]={str(settings['required_status_checks']['strict']).lower()}",
-            "-f", f"required_pull_request_reviews[required_approving_review_count]={settings['required_pull_request_reviews']['required_approving_review_count']}",
-            "-f", f"required_pull_request_reviews[dismiss_stale_reviews]={str(settings['required_pull_request_reviews']['dismiss_stale_reviews']).lower()}",
-            "-f", f"required_pull_request_reviews[require_code_owner_reviews]={str(settings['required_pull_request_reviews']['require_code_owner_reviews']).lower()}",
-            "-f", f"enforce_admins={str(settings['enforce_admins']).lower()}",
-            "-f", f"allow_force_pushes={str(settings['allow_force_pushes']).lower()}",
-            "-f", f"allow_deletions={str(settings['allow_deletions']).lower()}"
-        ]
-        
-        # Add required status checks
-        for check in settings['required_status_checks']['contexts']:
-            cmd.extend(["-f", f"required_status_checks[contexts][]={check}"])
-        
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            "--input", "-"
+        ], input=settings_json, text=True, capture_output=True, check=True)
         
         print("   ✓ Branch protection configured")
         return {"repository": repo_name, "branch": branch, "status": "success", "success": True}

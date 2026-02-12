@@ -51,9 +51,29 @@ export function computeHash(data: string): string {
 export function hashEvent(event: GovernanceEvent): string {
   const eventCopy = { ...event }
   delete eventCopy.hash
-  // Use canonical JSON with sorted keys at all levels
-  const canonical = JSON.stringify(eventCopy, null, 0)
+  // Create canonical JSON with sorted keys at all levels
+  const canonical = canonicalStringify(eventCopy)
   return computeHash(canonical)
+}
+
+/**
+ * Stringify with sorted keys recursively for canonical representation
+ */
+function canonicalStringify(obj: unknown): string {
+  if (obj === null || obj === undefined) {
+    return JSON.stringify(obj)
+  }
+  if (typeof obj !== 'object') {
+    return JSON.stringify(obj)
+  }
+  if (Array.isArray(obj)) {
+    return `[${obj.map(canonicalStringify).join(',')}]`
+  }
+  const sortedKeys = Object.keys(obj).sort()
+  const pairs = sortedKeys.map(
+    (key) => `${JSON.stringify(key)}:${canonicalStringify((obj as Record<string, unknown>)[key])}`,
+  )
+  return `{${pairs.join(',')}}`
 }
 
 /**

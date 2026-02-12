@@ -39,10 +39,15 @@ def check_workflow_compliance(repo_path: str, policies: list[str]) -> list[dict[
             
             content = workflow_file.read_text()
             
-            # Check for inline run steps
+            # Check for inline run steps in various formats
+            # Matches: "- run:", "- run: |", "- run: >", "run:"
             lines = content.split("\n")
+            in_step = False
             for i, line in enumerate(lines, 1):
-                if line.strip().startswith("- run:"):
+                stripped = line.strip()
+                
+                # Check for step starting with "- run:"
+                if stripped.startswith("- run:"):
                     violations.append({
                         "type": "thin-caller-violation",
                         "file": str(workflow_file.relative_to(repo_path)),
@@ -50,6 +55,21 @@ def check_workflow_compliance(repo_path: str, policies: list[str]) -> list[dict[
                         "message": f"Workflow contains inline 'run:' step (violates thin-caller policy)",
                         "severity": "error",
                     })
+                # Check for "run:" as a step property (not in uses: steps)
+                elif stripped.startswith("run:") and in_step:
+                    violations.append({
+                        "type": "thin-caller-violation",
+                        "file": str(workflow_file.relative_to(repo_path)),
+                        "line": i,
+                        "message": f"Workflow contains inline 'run:' step (violates thin-caller policy)",
+                        "severity": "error",
+                    })
+                
+                # Track when we're in a step block
+                if stripped.startswith("- name:") or stripped.startswith("- uses:"):
+                    in_step = True
+                elif stripped.startswith("-") and not stripped.startswith("- run:"):
+                    in_step = False
     
     return violations
 

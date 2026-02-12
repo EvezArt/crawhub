@@ -108,21 +108,59 @@ jobs:
 
       - name: Compute Merkle checkpoint
         if: always()
+        id: checkpoint
         run: |
-          bun run scripts/compute-merkle.ts compute .github/governance/events.json .github/governance/checkpoint.json
+          echo "Computing Merkle checkpoint..."
+          if bun run scripts/compute-merkle.ts compute .github/governance/events.json .github/governance/checkpoint.json; then
+            echo "checkpoint_created=true" >> $GITHUB_OUTPUT
+            echo "✓ Checkpoint computed successfully"
+          else
+            echo "checkpoint_created=false" >> $GITHUB_OUTPUT
+            echo "✗ Failed to compute checkpoint"
+            exit 1
+          fi
 
       - name: Update manifest with Merkle root
-        if: always()
+        if: always() && steps.checkpoint.outputs.checkpoint_created == 'true'
         run: |
           if [ -f .github/governance/checkpoint.json ]; then
             MERKLE_ROOT=$(jq -r '.root_hash' .github/governance/checkpoint.json)
             TIMESTAMP=$(jq -r '.timestamp' .github/governance/checkpoint.json)
+            
+            # Install yq if not available
+            if ! command -v yq &> /dev/null; then
+              pip install yq
+            fi
             
             # Update manifest with new Merkle root
             yq eval ".control_plane.merkle_root = \"$MERKLE_ROOT\"" -i .github/governance/manifest.yml
             yq eval ".control_plane.last_audit = \"$TIMESTAMP\"" -i .github/governance/manifest.yml
             
             echo "Updated manifest with Merkle root: $MERKLE_ROOT"
+          fi
+
+      - name: Commit and push checkpoint updates
+        if: always() && steps.checkpoint.outputs.checkpoint_created == 'true'
+        run: |
+          git config user.name "autopilot-auditor[bot]"
+          git config user.email "autopilot-auditor[bot]@users.noreply.github.com"
+          
+          git add .github/governance/events.json
+          git add .github/governance/checkpoint.json
+          git add .github/governance/manifest.yml
+          
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update governance checkpoint
+
+Merkle root: $(jq -r '.root_hash' .github/governance/checkpoint.json)
+Event count: $(jq -r '.event_count' .github/governance/checkpoint.json)
+Timestamp: $(jq -r '.timestamp' .github/governance/checkpoint.json)
+
+[skip ci]"
+            git push
+            echo "✓ Checkpoint committed and pushed"
           fi
 
   verify-checkpoint:
