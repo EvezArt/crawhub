@@ -1,0 +1,72 @@
+name: Reusable Policy Enforcement
+
+on:
+  workflow_call:
+    inputs:
+      allowlisted-workflows:
+        description: 'Comma-separated list of workflow files exempt from thin-caller policy'
+        required: false
+        type: string
+        default: 'ci.yml,reusable-policy.yml,policy.yml,autopilot-auditor.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  enforce-thin-caller:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check thin-caller policy
+        run: |
+          echo "Checking thin-caller policy compliance..."
+          ALLOWLIST="${{ inputs.allowlisted-workflows }}"
+          IFS=',' read -ra ALLOWED <<< "$ALLOWLIST"
+          
+          VIOLATIONS=0
+          
+          for workflow in .github/workflows/*.yml .github/workflows/*.yaml; do
+            if [[ ! -f "$workflow" ]]; then
+              continue
+            fi
+            
+            FILENAME=$(basename "$workflow")
+            
+            # Check if workflow is allowlisted
+            IS_ALLOWED=0
+            for allowed in "${ALLOWED[@]}"; do
+              if [[ "$FILENAME" == "$allowed" ]]; then
+                IS_ALLOWED=1
+                break
+              fi
+            done
+            
+            if [[ $IS_ALLOWED -eq 1 ]]; then
+              echo "✓ $FILENAME is allowlisted"
+              continue
+            fi
+            
+            # Check for inline run steps (excluding setup actions)
+            if grep -E '^\s+- run:' "$workflow" > /dev/null 2>&1; then
+              echo "✗ $FILENAME contains inline 'run:' steps (violates thin-caller policy)"
+              VIOLATIONS=$((VIOLATIONS + 1))
+            else
+              echo "✓ $FILENAME complies with thin-caller policy"
+            fi
+          done
+          
+          if [[ $VIOLATIONS -gt 0 ]]; then
+            echo ""
+            echo "❌ Found $VIOLATIONS workflow(s) violating thin-caller policy"
+            echo ""
+            echo "Remediation:"
+            echo "1. Move inline 'run:' steps to reusable workflows"
+            echo "2. Or add the workflow to the allowlist if it has a valid reason"
+            echo "3. See .github/workflows/THIN-CALLER-POLICY.md for details"
+            exit 1
+          fi
+          
+          echo ""
+          echo "✅ All workflows comply with thin-caller policy"
