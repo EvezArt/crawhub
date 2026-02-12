@@ -1,0 +1,123 @@
+name: Reusable Policy Enforcement
+
+on:
+  workflow_call:
+    inputs:
+      allowlist:
+        description: 'Comma-separated list of allowed workflow files'
+        required: false
+        type: string
+        default: 'ci.yml,policy.yml,reusable-policy.yml,autopilot-audit.yml,daily-repo-report.yml,secret-detection.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  enforce-thin-caller:
+    name: Enforce Thin-Caller CI Policy
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate thin-caller policy
+        shell: bash
+        run: |
+          set -euo pipefail
+          
+          echo "🔍 Scanning workflows for thin-caller compliance..."
+          
+          # Parse allowlist
+          IFS=',' read -ra ALLOWED <<< "${{ inputs.allowlist }}"
+          
+          # Find all workflow files
+          workflow_files=$(find .github/workflows -name "*.yml" -o -name "*.yaml" 2>/dev/null || true)
+          
+          if [ -z "$workflow_files" ]; then
+            echo "✅ No workflow files found"
+            exit 0
+          fi
+          
+          violations=0
+          
+          for workflow in $workflow_files; do
+            filename=$(basename "$workflow")
+            
+            # Check if file is in allowlist
+            is_allowed=false
+            for allowed in "${ALLOWED[@]}"; do
+              if [ "$filename" = "$allowed" ]; then
+                is_allowed=true
+                break
+              fi
+            done
+            
+            if [ "$is_allowed" = true ]; then
+              echo "✓ $filename (allowlisted)"
+              continue
+            fi
+            
+            # Check for bespoke run: commands (thin-caller violation)
+            if grep -q "^\s*run:" "$workflow"; then
+              echo "❌ VIOLATION: $filename contains bespoke 'run:' steps"
+              echo "   Thin-caller policy requires delegation to reusable workflows"
+              violations=$((violations + 1))
+            else
+              echo "✓ $filename (thin-caller compliant)"
+            fi
+          done
+          
+          if [ $violations -gt 0 ]; then
+            echo ""
+            echo "🚨 Found $violations thin-caller policy violation(s)"
+            echo "Policy: Workflows must delegate to reusable workflows, not contain local 'run:' steps"
+            echo "Solution: Move logic to reusable workflows or add to allowlist"
+            exit 1
+          fi
+          
+          echo ""
+          echo "✅ All workflows are thin-caller compliant"
+
+      - name: Validate workflow permissions
+        shell: bash
+        run: |
+          set -euo pipefail
+          
+          echo "🔍 Checking workflow permissions..."
+          
+          workflow_files=$(find .github/workflows -name "*.yml" -o -name "*.yaml" 2>/dev/null || true)
+          
+          if [ -z "$workflow_files" ]; then
+            exit 0
+          fi
+          
+          missing_permissions=0
+          
+          for workflow in $workflow_files; do
+            filename=$(basename "$workflow")
+            
+            # Check if workflow has explicit permissions block
+            if ! grep -q "^permissions:" "$workflow"; then
+              echo "⚠️  WARNING: $filename missing explicit permissions block"
+              missing_permissions=$((missing_permissions + 1))
+            fi
+          done
+          
+          if [ $missing_permissions -gt 0 ]; then
+            echo ""
+            echo "⚠️  $missing_permissions workflow(s) missing explicit permissions"
+            echo "Security best practice: Always declare permissions explicitly"
+          else
+            echo "✅ All workflows have explicit permissions"
+          fi
+
+      - name: Generate policy report
+        if: always()
+        shell: bash
+        run: |
+          echo "📊 Policy Enforcement Summary"
+          echo "Repository: ${{ github.repository }}"
+          echo "Ref: ${{ github.ref }}"
+          echo "Timestamp: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
