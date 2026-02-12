@@ -68,24 +68,30 @@ jobs:
             echo "📄 Checking $filename..."
 
             # Check for 'run:' steps (indicates thick caller)
-            # Matches both "- run:" and "  run:" patterns
-            if grep -E "^[[:space:]]+(- )?run:" "$file" \
-              > /dev/null 2>&1; then
+            # Matches both "- run:" and "  run:" patterns in steps
+            # Excludes comments, workflow_run, runs-on, etc.
+            if grep -E "^[[:space:]]+(- )?(name|run):[[:space:]]" "$file" \
+              | grep -q "run:"; then
               echo "  ❌ Found local 'run:' steps"
               VIOLATIONS+=("$filename: Contains local 'run:' steps")
             fi
 
             # Check if workflow uses reusable workflows
             uses_count=$(
-              grep -E "^[[:space:]]*(-[[:space:]]*uses:|uses:[[:space:]]+)" \
-                "$file" | wc -l || echo "0"
+              grep -E "^[[:space:]]*-[[:space:]]*uses:[[:space:]]+" "$file" \
+              | wc -l || echo "0"
             )
+            job_uses_count=$(
+              grep -E "^[[:space:]]+uses:[[:space:]]+" "$file" \
+              | grep -v "^[[:space:]]*-" | wc -l || echo "0"
+            )
+            total_uses=$((uses_count + job_uses_count))
 
-            if [ "$uses_count" -eq 0 ]; then
+            if [ "$total_uses" -eq 0 ]; then
               echo "  ⚠️  No reusable workflow references found"
             else
               echo "  ✅ Uses reusable workflows"
-              echo "     ($uses_count uses statements)"
+              echo "     ($total_uses uses statements)"
             fi
 
             echo ""
