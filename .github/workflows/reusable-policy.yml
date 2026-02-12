@@ -76,16 +76,16 @@ jobs:
             fi
 
             # Check if workflow uses reusable workflows
-            uses_stats=$(
+            uses_count=$(
               grep -E "^[[:space:]]*(-[[:space:]]*uses:|uses:[[:space:]]+)" \
                 "$file" | wc -l || echo "0"
             )
 
-            if [ "$uses_stats" -eq 0 ]; then
+            if [ "$uses_count" -eq 0 ]; then
               echo "  ⚠️  No reusable workflow references found"
             else
               echo "  ✅ Uses reusable workflows"
-              echo "     ($uses_stats uses statements)"
+              echo "     ($uses_count uses statements)"
             fi
 
             echo ""
