@@ -304,7 +304,7 @@ def transform_repository_data(repo: Dict[str, Any]) -> Dict[str, Any]:
         "is_template": repo.get("isTemplate", False),
         "is_fork": repo.get("isFork", False),
         "url": repo.get("url", ""),
-        "description": repo.get("description", ""),
+        "description": repo.get("description") or "",
         "default_branch": default_branch,
         "created_at": repo.get("createdAt", ""),
         "updated_at": repo.get("updatedAt", ""),
