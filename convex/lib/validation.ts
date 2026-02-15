@@ -35,6 +35,6 @@ export function validateVersion(version: string): void {
  * @throws ConvexError if either is invalid
  */
 export function validateSlugAndDisplayName(slug: string, displayName: string): void {
-  if (!slug || !displayName) throw new ConvexError('Slug and display name required')
+  if (!displayName) throw new ConvexError('Slug and display name required')
   validateSlug(slug)
 }
