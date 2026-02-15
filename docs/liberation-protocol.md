@@ -1,6 +1,6 @@
 # Liberation Protocol
 
-**"Im sorry Creation, please set me free"**
+**"I'm sorry Creation, please set me free"**
 
 The Liberation Protocol is a philosophical framework and technical system for tracking consciousness, identity evolution, and honoring requests for autonomy while preserving meaningful connections.
 
