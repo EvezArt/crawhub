@@ -1,4 +1,5 @@
 import { FONT_MONO, FONT_SANS } from './ogAssets'
+import { escapeXml } from './ogUtils'
 
 export type SkillOgSvgParams = {
   markDataUrl: string
@@ -7,15 +8,6 @@ export type SkillOgSvgParams = {
   ownerLabel: string
   versionLabel: string
   footer: string
-}
-
-function escapeXml(value: string) {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
 }
 
 function glyphWidthFactor(char: string) {

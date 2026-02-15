@@ -15,6 +15,8 @@ import {
   sanitizePath,
 } from './skills'
 import { generateSoulChangelogForPublish } from './soulChangelog'
+import { fetchText } from './utils'
+import { validateSlugAndDisplayName, validateVersion } from './validation'
 
 const MAX_TOTAL_BYTES = 50 * 1024 * 1024
 
@@ -84,13 +86,9 @@ export async function publishSoulVersionForUser(
   const version = args.version.trim()
   const slug = args.slug.trim().toLowerCase()
   const displayName = args.displayName.trim()
-  if (!slug || !displayName) throw new ConvexError('Slug and display name required')
-  if (!/^[a-z0-9][a-z0-9-]*$/.test(slug)) {
-    throw new ConvexError('Slug must be lowercase and url-safe')
-  }
-  if (!semver.valid(version)) {
-    throw new ConvexError('Version must be valid semver')
-  }
+
+  validateSlugAndDisplayName(slug, displayName)
+  validateVersion(version)
 
   await requireGitHubAccountAge(ctx, userId)
 
@@ -211,15 +209,6 @@ function mergeSourceIntoMetadata(metadata: unknown, source: PublishVersionArgs['
   if (!metadata) return { source: sourceValue }
   if (typeof metadata !== 'object' || Array.isArray(metadata)) return { source: sourceValue }
   return { ...(metadata as Record<string, unknown>), source: sourceValue }
-}
-
-export async function fetchText(
-  ctx: { storage: { get: (id: Id<'_storage'>) => Promise<Blob | null> } },
-  storageId: Id<'_storage'>,
-) {
-  const blob = await ctx.storage.get(storageId)
-  if (!blob) throw new Error('File missing in storage')
-  return blob.text()
 }
 
 function formatEmbeddingError(error: unknown) {
