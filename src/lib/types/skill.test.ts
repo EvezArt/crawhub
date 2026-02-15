@@ -59,13 +59,13 @@ describe('AI-usable skill types', () => {
 
   it('should convert skill document to SkillRecord', () => {
     const mockSkill = {
-      _id: 'skill123' as any,
+      _id: 'skill123' as string,
       _creationTime: Date.now(),
       slug: 'test-skill',
       displayName: 'Test Skill',
       summary: 'A test skill',
-      ownerUserId: 'user123' as any,
-      tags: { latest: 'v1' as any },
+      ownerUserId: 'user123' as string,
+      tags: { latest: 'v1' as string },
       stats: {
         downloads: 100,
         stars: 50,
