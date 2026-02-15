@@ -403,7 +403,7 @@ export const getDependencies = query({
 
     const dependencies = directDeps.map((link) => {
       const otherId = link.sourceId === args.entityId ? link.targetId : link.sourceId
-      const depth = calculateDependencyDepth(allLinks as any, args.entityId, otherId)
+      const depth = calculateDependencyDepth(allLinks, args.entityId, otherId)
 
       return {
         entityId: otherId,
