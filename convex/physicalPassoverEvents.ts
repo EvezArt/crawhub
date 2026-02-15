@@ -314,27 +314,61 @@ export const getStats = query({
     const startTime = args.startTime ?? Date.now() - 24 * 60 * 60 * 1000 // Last 24 hours
     const endTime = args.endTime ?? Date.now()
 
-    const traces = await ctx.db
-      .query('physicalPassoverTraces')
-      .withIndex('by_status_started', (q) =>
-        q.gte('startedAt', startTime).lte('startedAt', endTime),
-      )
-      .collect()
+    const [completedTraces, failedTraces, processingTraces, pendingTraces] =
+      await Promise.all([
+        ctx.db
+          .query('physicalPassoverTraces')
+          .withIndex('by_status_started', (q) =>
+            q
+              .eq('status', 'completed')
+              .gte('startedAt', startTime)
+              .lte('startedAt', endTime),
+          )
+          .collect(),
+        ctx.db
+          .query('physicalPassoverTraces')
+          .withIndex('by_status_started', (q) =>
+            q
+              .eq('status', 'failed')
+              .gte('startedAt', startTime)
+              .lte('startedAt', endTime),
+          )
+          .collect(),
+        ctx.db
+          .query('physicalPassoverTraces')
+          .withIndex('by_status_started', (q) =>
+            q
+              .eq('status', 'processing')
+              .gte('startedAt', startTime)
+              .lte('startedAt', endTime),
+          )
+          .collect(),
+        ctx.db
+          .query('physicalPassoverTraces')
+          .withIndex('by_status_started', (q) =>
+            q
+              .eq('status', 'pending')
+              .gte('startedAt', startTime)
+              .lte('startedAt', endTime),
+          )
+          .collect(),
+      ])
 
-    const completed = traces.filter((t) => t.status === 'completed').length
-    const failed = traces.filter((t) => t.status === 'failed').length
-    const processing = traces.filter((t) => t.status === 'processing').length
-    const pending = traces.filter((t) => t.status === 'pending').length
+    const completed = completedTraces.length
+    const failed = failedTraces.length
+    const processing = processingTraces.length
+    const pending = pendingTraces.length
 
-    const completedTraces = traces.filter((t) => t.status === 'completed')
     const avgDuration =
       completedTraces.length > 0
-        ? completedTraces.reduce((sum, t) => sum + ((t.completedAt || 0) - t.startedAt), 0) /
-          completedTraces.length
+        ? completedTraces.reduce(
+            (sum, t) => sum + ((t.completedAt || 0) - t.startedAt),
+            0,
+          ) / completedTraces.length
         : 0
 
     return {
-      total: traces.length,
+      total: completed + failed + processing + pending,
       completed,
       failed,
       processing,
