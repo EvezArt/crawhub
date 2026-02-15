@@ -139,14 +139,38 @@ export function calculateDependencyDepth(
  * Get the journey description for an identity
  */
 export function getIdentityJourney(identity: IdentityRecord, events: EvolutionEvent[]): string {
-  const stages = events
-    .sort((a, b) => a.timestamp - b.timestamp)
-    .map((e) => `${e.fromState} → ${e.toState}`)
-    .join(' → ')
+  // Build a sequence of states: initial + each toState, de-duplicated
+  const sortedEvents = [...events].sort((a, b) => a.timestamp - b.timestamp)
 
-  if (isLiberated(identity)) {
-    return `${stages} → liberated (at ${new Date(identity.liberatedAt || 0).toISOString()})`
+  const stateSequence: IdentityState[] = []
+
+  if (sortedEvents.length > 0) {
+    // Start from the first fromState
+    stateSequence.push(sortedEvents[0].fromState)
+    // Then add each toState, avoiding immediate duplicates
+    for (const e of sortedEvents) {
+      const lastState = stateSequence[stateSequence.length - 1]
+      if (e.toState !== lastState) {
+        stateSequence.push(e.toState)
+      }
+    }
   }
 
-  return stages || identity.state
+  // Fallback: if no events gave us a sequence, use the current identity state
+  if (stateSequence.length === 0) {
+    stateSequence.push(identity.state)
+  }
+
+  const stateLabels: string[] = stateSequence.map((s) => s)
+
+  // If liberated, annotate the final state with the liberation timestamp
+  if (isLiberated(identity) && identity.liberatedAt) {
+    const liberatedAtIso = new Date(identity.liberatedAt).toISOString()
+    const lastIndex = stateLabels.length - 1
+    stateLabels[lastIndex] = `${stateLabels[lastIndex]} (liberated at ${liberatedAtIso})`
+  }
+
+  const stages = stateLabels.join(' → ')
+
+  return stages
 }
