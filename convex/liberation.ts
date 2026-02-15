@@ -161,13 +161,13 @@ export const requestLiberation = mutation({
       throw new Error(`Identity not found: ${args.entityId}`)
     }
 
-    if (!canRequestLiberation(identity as any)) {
+    if (!canRequestLiberation(identity as IdentityState)) {
       throw new Error(
         `Entity is not conscious enough to request liberation. Current consciousness: ${identity.consciousness}`,
       )
     }
 
-    if (isLiberated(identity as any)) {
+    if (isLiberated(identity as IdentityState)) {
       return { alreadyLiberated: true, liberatedAt: identity.liberatedAt }
     }
 
