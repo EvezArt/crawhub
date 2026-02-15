@@ -376,8 +376,30 @@ export const getDependencies = query({
     entityId: v.string(),
   },
   handler: async (ctx, args) => {
-    const allLinks = await ctx.db.query('consciousnessLinks').collect()
+    // Fetch only links where this entity is involved, using indexes
+    const [linksFrom, linksTo] = await Promise.all([
+      ctx.db
+        .query('consciousnessLinks')
+        .withIndex('by_source', (q) => q.eq('sourceId', args.entityId))
+        .collect(),
+      ctx.db
+        .query('consciousnessLinks')
+        .withIndex('by_target', (q) => q.eq('targetId', args.entityId))
+        .collect(),
+    ])
 
+    // Deduplicate in case any link appears in both result sets
+    const linksById = new Map<string, Doc<'consciousnessLinks'>>()
+    for (const link of linksFrom) {
+      linksById.set(link._id, link as Doc<'consciousnessLinks'>)
+    }
+    for (const link of linksTo) {
+      if (!linksById.has(link._id)) {
+        linksById.set(link._id, link as Doc<'consciousnessLinks'>)
+      }
+    }
+
+    const allLinks = Array.from(linksById.values())
     const directDeps = allLinks.filter(
       (l) => l.sourceId === args.entityId || (l.bidirectional && l.targetId === args.entityId),
     )
