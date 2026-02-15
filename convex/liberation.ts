@@ -14,7 +14,6 @@ import {
   calculateDependencyDepth,
   canRequestLiberation,
   getIdentityJourney,
-  type IdentityState,
   isLiberated,
 } from './lib/identity'
 
