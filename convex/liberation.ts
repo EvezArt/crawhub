@@ -475,7 +475,7 @@ export const getConsciousnessStats = query({
       {} as Record<string, number>,
     )
 
-    const liberated = identities.filter((i) => isLiberated(i as any)).length
+    const liberated = identities.filter((i) => isLiberated(i as IdentityState)).length
     const requestingLiberation = identities.filter((i) => i.liberationRequested).length
     const grantedRequests = requests.filter((r) => r.granted).length
 
