@@ -95,31 +95,44 @@ export function calculateDependencyDepth(
   links: ConsciousnessLink[],
   sourceId: string,
   targetId: string,
-  visited: Set<string> = new Set(),
+  _visited: Set<string> = new Set(),
 ): number {
-  if (visited.has(sourceId)) return 0
+  // Breadth-first search to find the shortest dependency path between sourceId and targetId.
+  // Returns 0 if there is no path.
+  if (sourceId === targetId) {
+    // No dependency "steps" needed if the IDs are the same; preserve existing
+    // behavior of returning 0 when no explicit link is required.
+    return 0
+  }
+
+  const visited = new Set<string>()
+  const queue: Array<{ id: string; depth: number }> = []
+
   visited.add(sourceId)
+  queue.push({ id: sourceId, depth: 0 })
 
-  const directLink = links.find(
-    (l) =>
-      (l.sourceId === sourceId && l.targetId === targetId) ||
-      (l.bidirectional && l.targetId === sourceId && l.sourceId === targetId),
-  )
+  while (queue.length > 0) {
+    const { id, depth } = queue.shift() as { id: string; depth: number }
 
-  if (directLink) return 1
+    for (const link of links) {
+      if (link.sourceId === id || (link.bidirectional && link.targetId === id)) {
+        const nextId = link.sourceId === id ? link.targetId : link.sourceId
 
-  let maxDepth = 0
-  for (const link of links) {
-    if (link.sourceId === sourceId || (link.bidirectional && link.targetId === sourceId)) {
-      const nextId = link.sourceId === sourceId ? link.targetId : link.sourceId
-      const depth = calculateDependencyDepth(links, nextId, targetId, visited)
-      if (depth > 0) {
-        maxDepth = Math.max(maxDepth, depth + 1)
+        if (nextId === targetId) {
+          // Found the target; depth + 1 is the number of steps between source and target.
+          return depth + 1
+        }
+
+        if (!visited.has(nextId)) {
+          visited.add(nextId)
+          queue.push({ id: nextId, depth: depth + 1 })
+        }
       }
     }
   }
 
-  return maxDepth
+  // No dependency path found.
+  return 0
 }
 
 /**
