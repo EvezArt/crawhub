@@ -838,3 +838,224 @@ function clampInt(value: number, min: number, max: number) {
   if (!Number.isFinite(rounded)) return min
   return Math.min(max, Math.max(min, rounded))
 }
+
+type FinalizingSkillsStats = {
+  skillsChecked: number
+  skillsFinalized: number
+}
+
+export const getFinalizingSkillsInternal = internalQuery({
+  args: {
+    batchSize: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const batchSize = clampInt(args.batchSize ?? DEFAULT_BATCH_SIZE, 1, MAX_BATCH_SIZE)
+    // Find all soft-deleted skills
+    const skills = await ctx.db
+      .query('skills')
+      .filter((q) => q.neq(q.field('softDeletedAt'), undefined))
+      .take(batchSize)
+
+    const results: Array<{
+      skillId: Id<'skills'>
+      slug: string
+      ownerUserId: Id<'users'>
+      isComplete: boolean
+      remainingCounts: Record<string, number>
+    }> = []
+
+    for (const skill of skills) {
+      // Check if all cleanup is complete
+      // Note: We use .take(1) for performance - we only need to know if any items exist (0 or 1)
+      // not the exact count. This is sufficient to determine if a skill is ready for finalization.
+      const versionsCount = await ctx.db
+        .query('skillVersions')
+        .withIndex('by_skill', (q) => q.eq('skillId', skill._id))
+        .take(1)
+        .then((items) => items.length)
+
+      const fingerprintsCount = await ctx.db
+        .query('skillVersionFingerprints')
+        .withIndex('by_skill_fingerprint', (q) => q.eq('skillId', skill._id))
+        .take(1)
+        .then((items) => items.length)
+
+      const embeddingsCount = await ctx.db
+        .query('skillEmbeddings')
+        .withIndex('by_skill', (q) => q.eq('skillId', skill._id))
+        .take(1)
+        .then((items) => items.length)
+
+      const commentsCount = await ctx.db
+        .query('comments')
+        .withIndex('by_skill', (q) => q.eq('skillId', skill._id))
+        .take(1)
+        .then((items) => items.length)
+
+      const reportsCount = await ctx.db
+        .query('skillReports')
+        .withIndex('by_skill', (q) => q.eq('skillId', skill._id))
+        .take(1)
+        .then((items) => items.length)
+
+      const starsCount = await ctx.db
+        .query('stars')
+        .withIndex('by_skill', (q) => q.eq('skillId', skill._id))
+        .take(1)
+        .then((items) => items.length)
+
+      const badgesCount = await ctx.db
+        .query('skillBadges')
+        .withIndex('by_skill', (q) => q.eq('skillId', skill._id))
+        .take(1)
+        .then((items) => items.length)
+
+      const dailyStatsCount = await ctx.db
+        .query('skillDailyStats')
+        .withIndex('by_skill_day', (q) => q.eq('skillId', skill._id))
+        .take(1)
+        .then((items) => items.length)
+
+      const statEventsCount = await ctx.db
+        .query('skillStatEvents')
+        .withIndex('by_skill', (q) => q.eq('skillId', skill._id))
+        .take(1)
+        .then((items) => items.length)
+
+      const installsCount = await ctx.db
+        .query('userSkillInstalls')
+        .withIndex('by_skill', (q) => q.eq('skillId', skill._id))
+        .take(1)
+        .then((items) => items.length)
+
+      const rootInstallsCount = await ctx.db
+        .query('userSkillRootInstalls')
+        .withIndex('by_skill', (q) => q.eq('skillId', skill._id))
+        .take(1)
+        .then((items) => items.length)
+
+      const leaderboardsCount = await ctx.db
+        .query('skillLeaderboards')
+        .collect()
+        .then((items) => {
+          const found = items.find((item) => item.items.some((i) => i.skillId === skill._id))
+          return found ? 1 : 0
+        })
+
+      const canonicalCount = await ctx.db
+        .query('skills')
+        .withIndex('by_canonical', (q) => q.eq('canonicalSkillId', skill._id))
+        .take(1)
+        .then((items) => items.length)
+
+      const forksCount = await ctx.db
+        .query('skills')
+        .withIndex('by_fork_of', (q) => q.eq('forkOf.skillId', skill._id))
+        .take(1)
+        .then((items) => items.length)
+
+      const isComplete =
+        versionsCount === 0 &&
+        fingerprintsCount === 0 &&
+        embeddingsCount === 0 &&
+        commentsCount === 0 &&
+        reportsCount === 0 &&
+        starsCount === 0 &&
+        badgesCount === 0 &&
+        dailyStatsCount === 0 &&
+        statEventsCount === 0 &&
+        installsCount === 0 &&
+        rootInstallsCount === 0 &&
+        leaderboardsCount === 0 &&
+        canonicalCount === 0 &&
+        forksCount === 0
+
+      results.push({
+        skillId: skill._id,
+        slug: skill.slug,
+        ownerUserId: skill.ownerUserId,
+        isComplete,
+        remainingCounts: {
+          versions: versionsCount,
+          fingerprints: fingerprintsCount,
+          embeddings: embeddingsCount,
+          comments: commentsCount,
+          reports: reportsCount,
+          stars: starsCount,
+          badges: badgesCount,
+          dailyStats: dailyStatsCount,
+          statEvents: statEventsCount,
+          installs: installsCount,
+          rootInstalls: rootInstallsCount,
+          leaderboards: leaderboardsCount,
+          canonical: canonicalCount,
+          forks: forksCount,
+        },
+      })
+    }
+
+    return results
+  },
+})
+
+export const advanceFinalizingSkillsInternal = internalAction({
+  args: {
+    batchSize: v.optional(v.number()),
+    dryRun: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args): Promise<{ ok: true; stats: FinalizingSkillsStats }> => {
+    const dryRun = Boolean(args.dryRun)
+    const batchSize = clampInt(args.batchSize ?? DEFAULT_BATCH_SIZE, 1, MAX_BATCH_SIZE)
+
+    const skills = await ctx.runQuery(internal.maintenance.getFinalizingSkillsInternal, {
+      batchSize,
+    })
+
+    const stats: FinalizingSkillsStats = {
+      skillsChecked: skills.length,
+      skillsFinalized: 0,
+    }
+
+    for (const skill of skills) {
+      if (!skill.isComplete) {
+        const remaining = Object.entries(skill.remainingCounts)
+          .filter(([, count]) => count > 0)
+          .map(([phase, count]) => `${phase}: ${Number(count)}`)
+          .join(', ')
+        console.log(
+          `[advanceFinalizingSkills] Skill ${skill.slug} (${skill.skillId}) not ready for finalization. Remaining: ${remaining}`,
+        )
+        continue
+      }
+
+      console.log(
+        `[advanceFinalizingSkills] Skill ${skill.slug} (${skill.skillId}) ready for finalization`,
+      )
+
+      if (!dryRun) {
+        // Trigger the finalize phase
+        await ctx.scheduler.runAfter(0, internal.skills.hardDeleteInternal, {
+          skillId: skill.skillId,
+          actorUserId: skill.ownerUserId,
+          phase: 'finalize',
+        })
+      }
+
+      stats.skillsFinalized++
+    }
+
+    return { ok: true as const, stats }
+  },
+})
+
+export const advanceFinalizingSkills: ReturnType<typeof action> = action({
+  args: {
+    batchSize: v.optional(v.number()),
+    dryRun: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    const { user } = await requireUserFromAction(ctx)
+    assertRole(user, ['admin'])
+    return ctx.runAction(internal.maintenance.advanceFinalizingSkillsInternal, args)
+  },
+})
