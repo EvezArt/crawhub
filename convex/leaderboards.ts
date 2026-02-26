@@ -26,9 +26,9 @@ export const rebuildTrendingLeaderboardInternal = internalMutation({
       .order('desc')
       .take(KEEP_LEADERBOARD_ENTRIES + 5)
 
-    for (const entry of recent.slice(KEEP_LEADERBOARD_ENTRIES)) {
-      await ctx.db.delete(entry._id)
-    }
+    // Optimize: delete old leaderboard entries in parallel
+    const toDelete = recent.slice(KEEP_LEADERBOARD_ENTRIES)
+    await Promise.all(toDelete.map((entry) => ctx.db.delete(entry._id)))
 
     return { ok: true as const, count: items.length }
   },
