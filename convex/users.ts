@@ -33,7 +33,13 @@ export const searchInternal = internalQuery({
     assertAdmin(actor)
 
     const limit = Math.min(Math.max(args.limit ?? 20, 1), 200)
-    const users = await ctx.db.query('users').order('desc').collect()
+    // Optimize: limit initial query to reasonable size for admin search (10k users)
+    // and filter out deleted users early
+    const users = await ctx.db
+      .query('users')
+      .order('desc')
+      .take(10000)
+      .then((allUsers) => allUsers.filter((user) => !user.deletedAt))
     const result = buildUserSearchResults(users, args.query)
     const items = result.items.slice(0, limit).map((user) => ({
       userId: user._id,

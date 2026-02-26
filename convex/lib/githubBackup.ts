@@ -147,10 +147,16 @@ export async function backupSkillToGitHub(
     sha: string | null
   }> = []
 
-  for (const file of params.files) {
+  // Optimize: parallelize file uploads to GitHub
+  const fileUploadPromises = params.files.map(async (file) => {
     const content = await fetchStorageBase64(ctx, file.storageId)
     const blobSha = await createBlob(resolved.token, resolved.repoOwner, resolved.repoName, content)
     const path = `${skillRoot}/${file.path}`
+    return { path, blobSha }
+  })
+
+  const uploadedFiles = await Promise.all(fileUploadPromises)
+  for (const { path, blobSha } of uploadedFiles) {
     newPaths.add(path)
     treeEntries.push({ path, mode: '100644', type: 'blob', sha: blobSha })
   }
