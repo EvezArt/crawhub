@@ -110,37 +110,31 @@ export const getMyInstalled = query({
         .take(2000)
 
       const filtered = includeRemoved ? installs : installs.filter((entry) => !entry.removedAt)
-      const skills: Array<{
-        skill: {
-          slug: string
-          displayName: string
-          summary?: string
-          stats: unknown
-          ownerUserId: Id<'users'>
-        }
-        firstSeenAt: number
-        lastSeenAt: number
-        lastVersion?: string
-        removedAt?: number
-      }> = []
 
-      for (const entry of filtered) {
-        const skill = await ctx.db.get(entry.skillId)
-        if (!skill) continue
-        skills.push({
-          skill: {
-            slug: skill.slug,
-            displayName: skill.displayName,
-            summary: skill.summary,
-            stats: skill.stats,
-            ownerUserId: skill.ownerUserId,
-          },
-          firstSeenAt: entry.firstSeenAt,
-          lastSeenAt: entry.lastSeenAt,
-          lastVersion: entry.lastVersion,
-          removedAt: entry.removedAt,
-        })
-      }
+      // Optimize: fetch all skills in parallel instead of sequentially
+      const skillsData = await Promise.all(
+        filtered.map(async (entry) => {
+          const skill = await ctx.db.get(entry.skillId)
+          if (!skill) return null
+          return {
+            skill: {
+              slug: skill.slug,
+              displayName: skill.displayName,
+              summary: skill.summary,
+              stats: skill.stats,
+              ownerUserId: skill.ownerUserId,
+            },
+            firstSeenAt: entry.firstSeenAt,
+            lastSeenAt: entry.lastSeenAt,
+            lastVersion: entry.lastVersion,
+            removedAt: entry.removedAt,
+          }
+        }),
+      )
+
+      const skills = skillsData.filter(
+        (skill): skill is NonNullable<typeof skill> => skill !== null,
+      )
 
       resultRoots.push({
         rootId: root.rootId,
@@ -165,38 +159,39 @@ async function clearTelemetryForUser(ctx: MutationCtx, params: { userId: Id<'use
     .withIndex('by_user', (q) => q.eq('userId', params.userId))
     .take(5000)
 
-  for (const entry of installs) {
-    const skill = await ctx.db.get(entry.skillId)
-    if (!skill) {
+  // Optimize: process installs in parallel
+  await Promise.all(
+    installs.map(async (entry) => {
+      const skill = await ctx.db.get(entry.skillId)
+      if (!skill) {
+        await ctx.db.delete(entry._id)
+        return
+      }
+      await insertStatEvent(ctx, {
+        skillId: skill._id,
+        kind: 'install_clear',
+        delta: {
+          allTime: -1,
+          current: entry.activeRoots > 0 ? -1 : 0,
+        },
+      })
       await ctx.db.delete(entry._id)
-      continue
-    }
-    await insertStatEvent(ctx, {
-      skillId: skill._id,
-      kind: 'install_clear',
-      delta: {
-        allTime: -1,
-        current: entry.activeRoots > 0 ? -1 : 0,
-      },
-    })
-    await ctx.db.delete(entry._id)
-  }
+    }),
+  )
 
   const roots = await ctx.db
     .query('userSyncRoots')
     .withIndex('by_user', (q) => q.eq('userId', params.userId))
     .take(5000)
-  for (const root of roots) {
-    await ctx.db.delete(root._id)
-  }
+  // Optimize: delete roots in parallel
+  await Promise.all(roots.map((root) => ctx.db.delete(root._id)))
 
   const rootInstalls = await ctx.db
     .query('userSkillRootInstalls')
     .withIndex('by_user', (q) => q.eq('userId', params.userId))
     .take(10000)
-  for (const entry of rootInstalls) {
-    await ctx.db.delete(entry._id)
-  }
+  // Optimize: delete root installs in parallel
+  await Promise.all(rootInstalls.map((entry) => ctx.db.delete(entry._id)))
 }
 
 function normalizeRoots(roots: RootPayload[]): RootPayload[] {
