@@ -65,19 +65,19 @@ export function SoulDetailPage({ slug }: SoulDetailPageProps) {
     if (!latestVersion) return
     setReadme(null)
     setReadmeError(null)
-    let cancelled = false
+    let isCancelled = false
     void getReadme({ versionId: latestVersion._id })
       .then((data) => {
-        if (cancelled) return
+        if (isCancelled) return
         setReadme(data.text)
       })
       .catch((error) => {
-        if (cancelled) return
+        if (isCancelled) return
         setReadmeError(error instanceof Error ? error.message : 'Failed to load SOUL.md')
         setReadme(null)
       })
     return () => {
-      cancelled = true
+      isCancelled = true
     }
   }, [latestVersion, getReadme])
 

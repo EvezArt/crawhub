@@ -157,7 +157,7 @@ export function SkillDiffCard({ skill, versions, variant = 'card' }: SkillDiffCa
   )
 
   useEffect(() => {
-    let cancelled = false
+    let isCancelled = false
     async function loadText(versionId: Id<'skillVersions'>, path: string) {
       const cacheKey = `${versionId}:${path}`
       const cached = cacheRef.current.get(cacheKey)
@@ -190,7 +190,7 @@ export function SkillDiffCard({ skill, versions, variant = 'card' }: SkillDiffCa
       }
 
       if (warnings.length) {
-        if (!cancelled) {
+        if (!isCancelled) {
           setSizeWarning(warnings[0])
           setLeftText(EMPTY_DIFF_TEXT)
           setRightText(EMPTY_DIFF_TEXT)
@@ -204,21 +204,21 @@ export function SkillDiffCard({ skill, versions, variant = 'card' }: SkillDiffCa
           leftFile ? loadText(leftVersionId, leftFile.path) : Promise.resolve(''),
           rightFile ? loadText(rightVersionId, rightFile.path) : Promise.resolve(''),
         ])
-        if (cancelled) return
+        if (isCancelled) return
         setLeftText(nextLeft ?? EMPTY_DIFF_TEXT)
         setRightText(nextRight ?? EMPTY_DIFF_TEXT)
       } catch (err) {
-        if (cancelled) return
+        if (isCancelled) return
         setError(err instanceof Error ? err.message : 'Failed to load diff')
       } finally {
-        if (!cancelled) setIsLoading(false)
+        if (!isCancelled) setIsLoading(false)
       }
     }
 
     void load()
 
     return () => {
-      cancelled = true
+      isCancelled = true
     }
   }, [getFileText, leftVersionId, rightVersionId, selectedItem])
 

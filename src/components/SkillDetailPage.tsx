@@ -78,25 +78,25 @@ function useSecurityScan(sha256hash?: string, enabled = true) {
       return
     }
 
-    let cancelled = false
+    let isCancelled = false
     setIsLoading(true)
 
     void fetchVirusTotalResults({ sha256hash })
       .then((virusTotalResponse) => {
-        if (!cancelled) {
+        if (!isCancelled) {
           setScanResult(virusTotalResponse)
           setIsLoading(false)
         }
       })
       .catch(() => {
-        if (!cancelled) {
+        if (!isCancelled) {
           setScanResult({ status: 'error' })
           setIsLoading(false)
         }
       })
 
     return () => {
-      cancelled = true
+      isCancelled = true
     }
   }, [sha256hash, enabled, fetchVirusTotalResults])
 
@@ -385,19 +385,19 @@ export function SkillDetailPage({
     if (!latestVersion) return
     setReadme(null)
     setReadmeError(null)
-    let cancelled = false
+    let isCancelled = false
     void getReadme({ versionId: latestVersion._id })
       .then((data) => {
-        if (cancelled) return
+        if (isCancelled) return
         setReadme(data.text)
       })
       .catch((error) => {
-        if (cancelled) return
+        if (isCancelled) return
         setReadmeError(error instanceof Error ? error.message : 'Failed to load README')
         setReadme(null)
       })
     return () => {
-      cancelled = true
+      isCancelled = true
     }
   }, [latestVersion, getReadme])
 
