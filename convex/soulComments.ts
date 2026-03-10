@@ -24,7 +24,7 @@ export const listBySoul = query({
   },
 })
 
-export const add = mutation({
+export const addComment = mutation({
   args: { soulId: v.id('souls'), body: v.string() },
   handler: async (ctx, args) => {
     const { userId } = await requireUser(ctx)
@@ -49,6 +49,9 @@ export const add = mutation({
     })
   },
 })
+
+// Legacy alias for backward compatibility
+export const add = addComment
 
 export const remove = mutation({
   args: { commentId: v.id('soulComments') },

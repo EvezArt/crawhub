@@ -40,22 +40,22 @@ export function parseFrontmatter(content: string): ParsedSkillFrontmatter {
 }
 
 export function getFrontmatterValue(frontmatter: ParsedSkillFrontmatter, key: string) {
-  const raw = frontmatter[key]
-  return typeof raw === 'string' ? raw : undefined
+  const fieldValue = frontmatter[key]
+  return typeof fieldValue === 'string' ? fieldValue : undefined
 }
 
 export function getFrontmatterMetadata(frontmatter: ParsedSkillFrontmatter) {
-  const raw = frontmatter.metadata
-  if (!raw) return undefined
-  if (typeof raw === 'string') {
+  const metadataValue = frontmatter.metadata
+  if (!metadataValue) return undefined
+  if (typeof metadataValue === 'string') {
     try {
-      const parsed = JSON.parse(raw) as unknown
+      const parsed = JSON.parse(metadataValue) as unknown
       return parsed ?? undefined
     } catch {
       return undefined
     }
   }
-  if (typeof raw === 'object') return raw
+  if (typeof metadataValue === 'object') return metadataValue
   return undefined
 }
 
@@ -159,9 +159,9 @@ export function buildEmbeddingText(params: {
     getFrontmatterValue(frontmatter, 'emoji'),
   ].filter(Boolean)
   const fileParts = otherFiles.map((file) => `# ${file.path}\n${file.content}`)
-  const raw = [headerParts.join('\n'), readme, ...fileParts].filter(Boolean).join('\n\n')
-  if (raw.length <= maxChars) return raw
-  return raw.slice(0, maxChars)
+  const embeddingContent = [headerParts.join('\n'), readme, ...fileParts].filter(Boolean).join('\n\n')
+  if (embeddingContent.length <= maxChars) return embeddingContent
+  return embeddingContent.slice(0, maxChars)
 }
 
 const encoder = new TextEncoder()
@@ -220,31 +220,31 @@ function normalizeStringList(input: unknown): string[] {
 
 function parseInstallSpec(input: unknown): SkillInstallSpec | undefined {
   if (!input || typeof input !== 'object') return undefined
-  const raw = input as Record<string, unknown>
+  const inputObject = input as Record<string, unknown>
   const kindRaw =
-    typeof raw.kind === 'string' ? raw.kind : typeof raw.type === 'string' ? raw.type : ''
+    typeof inputObject.kind === 'string' ? inputObject.kind : typeof inputObject.type === 'string' ? inputObject.type : ''
   const kind = kindRaw.trim().toLowerCase()
   if (kind !== 'brew' && kind !== 'node' && kind !== 'go' && kind !== 'uv') return undefined
 
   const spec: SkillInstallSpec = { kind: kind as SkillInstallSpec['kind'] }
-  if (typeof raw.id === 'string') spec.id = raw.id
-  if (typeof raw.label === 'string') spec.label = raw.label
-  const bins = normalizeStringList(raw.bins)
+  if (typeof inputObject.id === 'string') spec.id = inputObject.id
+  if (typeof inputObject.label === 'string') spec.label = inputObject.label
+  const bins = normalizeStringList(inputObject.bins)
   if (bins.length > 0) spec.bins = bins
-  if (typeof raw.formula === 'string') spec.formula = raw.formula
-  if (typeof raw.tap === 'string') spec.tap = raw.tap
-  if (typeof raw.package === 'string') spec.package = raw.package
-  if (typeof raw.module === 'string') spec.module = raw.module
+  if (typeof inputObject.formula === 'string') spec.formula = inputObject.formula
+  if (typeof inputObject.tap === 'string') spec.tap = inputObject.tap
+  if (typeof inputObject.package === 'string') spec.package = inputObject.package
+  if (typeof inputObject.module === 'string') spec.module = inputObject.module
   return spec
 }
 
 function parseNixPluginSpec(input: unknown): NixPluginSpec | undefined {
   if (!input || typeof input !== 'object') return undefined
-  const raw = input as Record<string, unknown>
-  if (typeof raw.plugin !== 'string') return undefined
-  const plugin = raw.plugin.trim()
+  const inputObject = input as Record<string, unknown>
+  if (typeof inputObject.plugin !== 'string') return undefined
+  const plugin = inputObject.plugin.trim()
   if (!plugin) return undefined
-  const systems = normalizeStringList(raw.systems)
+  const systems = normalizeStringList(inputObject.systems)
   const spec: NixPluginSpec = { plugin }
   if (systems.length > 0) spec.systems = systems
   return spec
@@ -252,10 +252,10 @@ function parseNixPluginSpec(input: unknown): NixPluginSpec | undefined {
 
 function parseClawdbotConfigSpec(input: unknown): ClawdbotConfigSpec | undefined {
   if (!input || typeof input !== 'object') return undefined
-  const raw = input as Record<string, unknown>
-  const requiredEnv = normalizeStringList(raw.requiredEnv)
-  const stateDirs = normalizeStringList(raw.stateDirs)
-  const example = typeof raw.example === 'string' ? raw.example.trim() : ''
+  const inputObject = input as Record<string, unknown>
+  const requiredEnv = normalizeStringList(inputObject.requiredEnv)
+  const stateDirs = normalizeStringList(inputObject.stateDirs)
+  const example = typeof inputObject.example === 'string' ? inputObject.example.trim() : ''
   const spec: ClawdbotConfigSpec = {}
   if (requiredEnv.length > 0) spec.requiredEnv = requiredEnv
   if (stateDirs.length > 0) spec.stateDirs = stateDirs

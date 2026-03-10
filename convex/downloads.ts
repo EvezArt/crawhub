@@ -20,14 +20,14 @@ export const downloadZip = httpAction(async (ctx, request) => {
   }
 
   // Block downloads based on moderation status
-  const mod = skillResult.moderationInfo
-  if (mod?.isMalwareBlocked) {
+  const moderationInfo = skillResult.moderationInfo
+  if (moderationInfo?.isMalwareBlocked) {
     return new Response(
       'Blocked: this skill has been flagged as malicious by VirusTotal and cannot be downloaded.',
       { status: 403 },
     )
   }
-  if (mod?.isPendingScan) {
+  if (moderationInfo?.isPendingScan) {
     return new Response(
       'This skill is pending a security scan by VirusTotal. Please try again in a few minutes.',
       { status: 423 },

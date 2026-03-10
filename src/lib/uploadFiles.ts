@@ -146,11 +146,11 @@ async function readArrayBuffer(file: Blob) {
 }
 
 function guessContentType(path: string) {
-  const ext = path.split('.').pop()?.toLowerCase()
-  if (!ext) return 'application/octet-stream'
-  const known = TEXT_TYPES.get(ext)
+  const fileExtension = path.split('.').pop()?.toLowerCase()
+  if (!fileExtension) return 'application/octet-stream'
+  const known = TEXT_TYPES.get(fileExtension)
   if (known) return known
-  if (TEXT_FILE_EXTENSION_SET.has(ext)) return 'text/plain'
+  if (TEXT_FILE_EXTENSION_SET.has(fileExtension)) return 'text/plain'
   return 'application/octet-stream'
 }
 
@@ -182,14 +182,14 @@ function untar(bytes: Uint8Array) {
 }
 
 function readString(bytes: Uint8Array) {
-  const end = bytes.indexOf(0)
-  const slice = end === -1 ? bytes : bytes.subarray(0, end)
+  const nullTerminatorPosition = bytes.indexOf(0)
+  const slice = nullTerminatorPosition === -1 ? bytes : bytes.subarray(0, nullTerminatorPosition)
   return new TextDecoder().decode(slice).trim()
 }
 
 function readOctal(bytes: Uint8Array) {
-  const raw = readString(bytes)
-  return raw ? Number.parseInt(raw, 8) : 0
+  const octalString = readString(bytes)
+  return octalString ? Number.parseInt(octalString, 8) : 0
 }
 
 function unwrapSingleTopLevelFolder<T extends { path: string }>(entries: T[]) {

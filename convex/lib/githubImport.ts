@@ -230,8 +230,8 @@ export function detectGitHubImportCandidates(entries: ZipEntryMap): GitHubImport
     if (!isSkill) continue
     const dir = normalized.split('/').slice(0, -1).join('/')
     const readmePath = normalized
-    const raw = new TextDecoder().decode(entries[path] ?? new Uint8Array())
-    const frontmatter = parseFrontmatter(raw)
+    const fileContent = new TextDecoder().decode(entries[path] ?? new Uint8Array())
+    const frontmatter = parseFrontmatter(fileContent)
     const name = typeof frontmatter.name === 'string' ? frontmatter.name : undefined
     const description =
       typeof frontmatter.description === 'string' ? frontmatter.description : undefined

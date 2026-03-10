@@ -260,7 +260,7 @@ export function SkillDetailPage({
   const skillData = isStaffMember ? skillDataForStaff : skillDataForPublic
   const toggleStar = useMutation(api.stars.toggle)
   const reportSkill = useMutation(api.skills.report)
-  const addComment = useMutation(api.comments.add)
+  const addComment = useMutation(api.comments.addComment)
   const removeComment = useMutation(api.comments.remove)
   const updateTags = useMutation(api.skills.updateTags)
   const getReadme = useAction(api.skills.getReadme)
