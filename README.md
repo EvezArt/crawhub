@@ -148,4 +148,118 @@ bun run build
 bun run test
 bun run coverage
 bun run lint
+bun run refresh:skills  # Refresh local skills snapshot for agents
 ```
+
+## AI-Usable APIs
+
+ClawHub exposes machine-readable APIs for AI agents and automation tools:
+
+### `/api/skills.json`
+
+Returns all skills in a structured JSON format:
+
+```bash
+curl https://clawhub.ai/api/skills.json
+```
+
+Response structure:
+```json
+{
+  "skills": [
+    {
+      "_id": "...",
+      "meta": {
+        "id": "skill-slug",
+        "name": "Skill Name",
+        "description": "Skill description",
+        "tags": ["tag1", "tag2"],
+        "capability": {
+          "id": "skill.capability",
+          "verbs": ["action1", "action2"],
+          "resources": ["resource1", "resource2"]
+        }
+      },
+      "stats": {
+        "downloads": 100,
+        "stars": 50,
+        "installsAllTime": 200,
+        "versions": 5
+      },
+      "ownerHandle": "username",
+      "latestVersion": "1.0.0"
+    }
+  ],
+  "total": 10,
+  "timestamp": 1234567890
+}
+```
+
+### `/api/events/[sessionKey].json`
+
+Proxies agent events from the OpenClaw gateway (read-only):
+
+```bash
+curl https://clawhub.ai/api/events/my-session-key.json
+```
+
+Response structure:
+```json
+{
+  "sessionKey": "my-session-key",
+  "events": [
+    {
+      "id": "event-1",
+      "sessionKey": "my-session-key",
+      "type": "agent.message",
+      "timestamp": 1234567890,
+      "payload": {},
+      "message": "Event message"
+    }
+  ],
+  "total": 10,
+  "hasMore": false
+}
+```
+
+Configure the OpenClaw gateway URL via environment variables:
+```bash
+OPENCLAW_GATEWAY_URL=https://openclaw.example.com
+OPENCLAW_GATEWAY_TOKEN=optional-auth-token
+```
+
+### Local Skills Snapshot
+
+For agents running in Codespaces or other constrained environments, you can generate a local filesystem snapshot:
+
+```bash
+bun run refresh:skills
+```
+
+This creates `.crawfather/skills-snapshot.json` with the same structure as `/api/skills.json`.
+
+Agents can read this file directly without network access:
+```typescript
+import { readFileSync } from 'fs'
+const snapshot = JSON.parse(readFileSync('.crawfather/skills-snapshot.json', 'utf-8'))
+console.log(`Found ${snapshot.total} skills`)
+```
+
+### Example: Using the API in an Agent
+
+```typescript
+// Fetch all skills
+const response = await fetch('https://clawhub.ai/api/skills.json')
+const { skills } = await response.json()
+
+// Find skills with specific capabilities
+const metaAgents = skills.filter(s => 
+  s.meta.capability?.verbs.includes('scan') &&
+  s.meta.capability?.resources.includes('github')
+)
+
+// Get events for a session
+const events = await fetch('https://clawhub.ai/api/events/session-123.json')
+const { events: agentEvents } = await events.json()
+```
+

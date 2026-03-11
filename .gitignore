@@ -24,3 +24,6 @@ coverage
 playwright-report
 test-results
 .playwright
+
+# Local skill snapshot for agents
+.crawfather
