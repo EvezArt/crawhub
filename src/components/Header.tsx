@@ -92,6 +92,11 @@ export default function Header() {
             Upload
           </Link>
           {isSoulMode ? null : <Link to="/import">Import</Link>}
+          {isSoulMode ? null : (
+            <Link to="/live" search={{ sessionKey: 'agent:crawfather:main' }}>
+              Live
+            </Link>
+          )}
           <Link
             to={isSoulMode ? '/souls' : '/skills'}
             search={

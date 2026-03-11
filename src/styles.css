@@ -28,6 +28,20 @@
   --font-mono:
     "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
+
+  /* Live Dashboard color variables */
+  --color-primary: #3b82f6;
+  --color-primary-bg: #eff6ff;
+  --color-success: #10b981;
+  --color-success-bg: #f0fdf4;
+  --color-warning: #f59e0b;
+  --color-warning-bg: #fef3c7;
+  --color-error: #ef4444;
+  --color-error-bg: #fef2f2;
+  --color-info: #0ea5e9;
+  --color-info-bg: #f0f9ff;
+  --color-text-secondary: #6b7280;
+  --color-bg-secondary: #f9fafb;
 }
 
 [data-theme="dark"] {
@@ -47,6 +61,20 @@
   --gold: #f3c97a;
   --line: rgba(255, 255, 255, 0.12);
   --shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+
+  /* Live Dashboard dark mode colors */
+  --color-primary: #60a5fa;
+  --color-primary-bg: #1e3a8a;
+  --color-success: #34d399;
+  --color-success-bg: #064e3b;
+  --color-warning: #fbbf24;
+  --color-warning-bg: #78350f;
+  --color-error: #f87171;
+  --color-error-bg: #7f1d1d;
+  --color-info: #38bdf8;
+  --color-info-bg: #0c4a6e;
+  --color-text-secondary: #9ca3af;
+  --color-bg-secondary: #1f2937;
 }
 
 * {

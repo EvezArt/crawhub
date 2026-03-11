@@ -20,4 +20,5 @@ export const ApiRoutes = {
   souls: '/api/v1/souls',
   users: '/api/v1/users',
   whoami: '/api/v1/whoami',
+  openclawEvents: '/api/v1/openclaw/events',
 } as const
