@@ -12,12 +12,8 @@ import { generateChangelogPreview as buildChangelogPreview } from './lib/changel
 import { buildTrendingLeaderboard } from './lib/leaderboards'
 import { deriveModerationFlags } from './lib/moderation'
 import { toPublicSkill, toPublicUser } from './lib/public'
-import {
-  fetchText,
-  type PublishResult,
-  publishVersionForUser,
-  queueHighlightedWebhook,
-} from './lib/skillPublish'
+import { type PublishResult, publishVersionForUser, queueHighlightedWebhook } from './lib/skillPublish'
+import { fetchText } from './lib/utils'
 import { getFrontmatterValue, hashSkillFiles } from './lib/skills'
 import schema from './schema'
 

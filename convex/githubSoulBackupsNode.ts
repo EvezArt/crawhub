@@ -11,6 +11,7 @@ import {
   getGitHubSoulBackupContext,
   isGitHubSoulBackupConfigured,
 } from './lib/githubSoulBackup'
+import { clampInt } from './lib/utils'
 
 const DEFAULT_BATCH_SIZE = 50
 const MAX_BATCH_SIZE = 200
@@ -181,6 +182,3 @@ export const syncGitHubSoulBackupsInternal = internalAction({
   handler: syncGitHubSoulBackupsInternalHandler,
 })
 
-function clampInt(value: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, Math.floor(value)))
-}

@@ -1,4 +1,5 @@
 import { FONT_MONO, FONT_SANS } from './ogAssets'
+import { escapeXml } from './ogUtils'
 
 export type SoulOgSvgParams = {
   markDataUrl: string
@@ -7,15 +8,6 @@ export type SoulOgSvgParams = {
   ownerLabel: string
   versionLabel: string
   footer: string
-}
-
-function escapeXml(value: string) {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
 }
 
 function wrapText(value: string, maxChars: number, maxLines: number) {

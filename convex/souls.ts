@@ -6,7 +6,8 @@ import { assertModerator, requireUser, requireUserFromAction } from './lib/acces
 import { toPublicSoul, toPublicUser } from './lib/public'
 import { getFrontmatterValue, hashSkillFiles } from './lib/skills'
 import { generateSoulChangelogPreview } from './lib/soulChangelog'
-import { fetchText, type PublishResult, publishSoulVersionForUser } from './lib/soulPublish'
+import { type PublishResult, publishSoulVersionForUser } from './lib/soulPublish'
+import { fetchText } from './lib/utils'
 
 export { publishSoulVersionForUser } from './lib/soulPublish'
 
