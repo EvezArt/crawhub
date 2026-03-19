@@ -22,7 +22,8 @@
     "lint": "bun run lint:biome && bun run lint:oxlint",
     "lint:biome": "biome check .",
     "lint:oxlint": "oxlint --type-aware --tsconfig ./tsconfig.oxlint.json ./src ./convex ./packages/clawdhub/src ./packages/schema/src",
-    "format": "biome format --write ."
+    "format": "biome format --write .",
+    "security:scan": "bun scripts/security-scan.ts"
   },
   "dependencies": {
     "@auth/core": "^0.37.4",

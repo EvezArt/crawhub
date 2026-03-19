@@ -24,3 +24,8 @@ coverage
 playwright-report
 test-results
 .playwright
+
+# Security scanning
+security-report*.txt
+security-report*.json
+security-report*.md
