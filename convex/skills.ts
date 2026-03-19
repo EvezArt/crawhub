@@ -653,7 +653,7 @@ export const getQuickStatsInternal = internalQuery({
   args: {},
   handler: async (ctx) => {
     const allSkills = await ctx.db.query('skills').collect()
-    const active = allSkills.filter((s) => !s.softDeletedAt)
+    const active = allSkills.filter((skill) => !skill.softDeletedAt)
 
     const byStatus: Record<string, number> = {}
     const byReason: Record<string, number> = {}
@@ -678,7 +678,7 @@ export const getStatsInternal = internalQuery({
   args: {},
   handler: async (ctx) => {
     const allSkills = await ctx.db.query('skills').collect()
-    const active = allSkills.filter((s) => !s.softDeletedAt)
+    const active = allSkills.filter((skill) => !skill.softDeletedAt)
 
     const byStatus: Record<string, number> = {}
     const byReason: Record<string, number> = {}
@@ -712,7 +712,9 @@ export const getStatsInternal = internalQuery({
       noSha256hash: 0,
       hasHashNoAnalysis: 0,
     }
-    for (const skill of active.filter((s) => (s.moderationStatus ?? 'active') === 'active')) {
+    for (const skill of active.filter(
+      (skill) => (skill.moderationStatus ?? 'active') === 'active',
+    )) {
       if (!skill.latestVersionId) {
         vtStats.noAnalysis++
         vtStats.noLatestVersion++
@@ -1618,10 +1620,10 @@ export const getSkillsWithNullModerationStatusInternal = internalQuery({
       )
       .take(limit)
 
-    return skills.map((s) => ({
-      skillId: s._id,
-      slug: s.slug,
-      moderationReason: s.moderationReason,
+    return skills.map((skill) => ({
+      skillId: skill._id,
+      slug: skill.slug,
+      moderationReason: skill.moderationReason,
     }))
   },
 })

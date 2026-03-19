@@ -75,33 +75,33 @@ function md5cycle(x: number[], k: number[]) {
   x[3] = add32(d, x[3])
 }
 
-function cmn(q: number, a: number, b: number, x: number, s: number, t: number) {
+function combineMd5Values(q: number, a: number, b: number, x: number, s: number, t: number) {
   a = add32(add32(a, q), add32(x, t))
   return add32((a << s) | (a >>> (32 - s)), b)
 }
 
 function ff(a: number, b: number, c: number, d: number, x: number, s: number, t: number) {
-  return cmn((b & c) | (~b & d), a, b, x, s, t)
+  return combineMd5Values((b & c) | (~b & d), a, b, x, s, t)
 }
 
 function gg(a: number, b: number, c: number, d: number, x: number, s: number, t: number) {
-  return cmn((b & d) | (c & ~d), a, b, x, s, t)
+  return combineMd5Values((b & d) | (c & ~d), a, b, x, s, t)
 }
 
 function hh(a: number, b: number, c: number, d: number, x: number, s: number, t: number) {
-  return cmn(b ^ c ^ d, a, b, x, s, t)
+  return combineMd5Values(b ^ c ^ d, a, b, x, s, t)
 }
 
 function ii(a: number, b: number, c: number, d: number, x: number, s: number, t: number) {
-  return cmn(c ^ (b | ~d), a, b, x, s, t)
+  return combineMd5Values(c ^ (b | ~d), a, b, x, s, t)
 }
 
-function md51(s: string) {
-  const n = s.length
+function computeMd5Hash(s: string) {
+  const stringLength = s.length
   const state = [1732584193, -271733879, -1732584194, 271733878]
   let i = 0
-  for (i = 64; i <= n; i += 64) {
-    md5cycle(state, md5blk(s.substring(i - 64, i)))
+  for (i = 64; i <= stringLength; i += 64) {
+    md5cycle(state, createMd5Blocks(s.substring(i - 64, i)))
   }
   s = s.substring(i - 64)
   const tail = Array(16).fill(0) as number[]
@@ -113,38 +113,40 @@ function md51(s: string) {
     md5cycle(state, tail)
     for (let j = 0; j < 16; j += 1) tail[j] = 0
   }
-  tail[14] = n * 8
+  tail[14] = stringLength * 8
   md5cycle(state, tail)
   return state
 }
 
-function md5blk(s: string) {
-  const md5blks: number[] = []
+function createMd5Blocks(s: string) {
+  const md5blocks: number[] = []
   for (let i = 0; i < 64; i += 4) {
-    md5blks[i >> 2] =
+    md5blocks[i >> 2] =
       s.charCodeAt(i) +
       (s.charCodeAt(i + 1) << 8) +
       (s.charCodeAt(i + 2) << 16) +
       (s.charCodeAt(i + 3) << 24)
   }
-  return md5blks
+  return md5blocks
 }
 
-function rhex(n: number) {
-  const s = '0123456789abcdef'
-  let j = 0
+function reverseHexBytes(number: number) {
+  const hexDigits = '0123456789abcdef'
+  let byteIndex = 0
   let out = ''
-  for (; j < 4; j += 1) {
-    out += s.charAt((n >> (j * 8 + 4)) & 0x0f) + s.charAt((n >> (j * 8)) & 0x0f)
+  for (; byteIndex < 4; byteIndex += 1) {
+    out +=
+      hexDigits.charAt((number >> (byteIndex * 8 + 4)) & 0x0f) +
+      hexDigits.charAt((number >> (byteIndex * 8)) & 0x0f)
   }
   return out
 }
 
-function hex(x: number[]) {
-  for (let i = 0; i < x.length; i += 1) {
-    x[i] = Number(x[i])
+function convertToHexString(numbers: number[]) {
+  for (let i = 0; i < numbers.length; i += 1) {
+    numbers[i] = Number(numbers[i])
   }
-  return x.map(rhex).join('')
+  return numbers.map(reverseHexBytes).join('')
 }
 
 function add32(a: number, b: number) {
@@ -153,6 +155,6 @@ function add32(a: number, b: number) {
 
 export function gravatarUrl(email: string, size = 160) {
   const normalized = email.trim().toLowerCase()
-  const hash = hex(md51(normalized))
+  const hash = convertToHexString(computeMd5Hash(normalized))
   return `https://www.gravatar.com/avatar/${hash}?d=identicon&s=${size}`
 }
